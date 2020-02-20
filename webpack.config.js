@@ -8,7 +8,10 @@ const server = env => {
   const mode = env.production ? "production" : "development";
   let plugins = [
     new CleanWebpackPlugin(),
-    new Nodemon({ script: "./dist/server.bundle.js" })
+    new Nodemon({
+      script: "./dist/server.bundle.js",
+      watch: path.resolve("./dist")
+    })
   ];
 
   if (!env.production) plugins.push(new Dotenv());

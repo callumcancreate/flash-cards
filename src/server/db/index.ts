@@ -28,4 +28,6 @@ const connect = () => {
   return client;
 };
 
-export default connect;
+const client = connect();
+
+export default client;
