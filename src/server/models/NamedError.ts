@@ -1,4 +1,14 @@
-export type Name = "Authorization" | "NotFound" | "Client" | "Server";
+export type Name =
+  | "Authorization"
+  | "NotFound"
+  | "Client"
+  | "Server"
+  | "EvalEror"
+  | "InternalError"
+  | "RangeError"
+  | "SyntaxError"
+  | "TypeError"
+  | "URIError";
 
 class NamedError extends Error {
   name: Name;
