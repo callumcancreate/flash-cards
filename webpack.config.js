@@ -4,26 +4,35 @@ const NodeExternals = require("webpack-node-externals");
 const Dotenv = require("dotenv-webpack");
 const Nodemon = require("nodemon-webpack-plugin");
 
-const server = env => {
+const makeConfig = name => env => {
   const mode = env.production ? "production" : "development";
-  let plugins = [
-    new CleanWebpackPlugin(),
-    new Nodemon({
-      script: "./dist/server.bundle.js",
-      watch: path.resolve("./dist")
-    })
-  ];
+  const isServer = name === "server";
+  let plugins = isServer
+    ? [
+        new Nodemon({
+          script: "./dist/server.js",
+          watch: path.resolve("./dist")
+        })
+      ]
+    : [new CleanWebpackPlugin()];
 
   if (!env.production) plugins.push(new Dotenv());
 
+  const outputPath = isServer ? [] : ["public"];
   return {
     mode,
     entry: {
-      server: path.resolve(__dirname, "src", "server", "index.ts")
+      [name]: path.resolve(
+        __dirname,
+        "src",
+        name,
+        isServer ? "index.ts" : "index.tsx"
+      )
     },
     output: {
-      filename: "[name].bundle.js",
-      publicPath: "/"
+      filename: "[name].js",
+      path: path.resolve(__dirname, "dist", ...outputPath),
+      publicPath: "/public"
     },
     module: {
       rules: [
@@ -49,8 +58,8 @@ const server = env => {
     resolve: {
       extensions: [".tsx", ".ts", ".js"]
     },
-    externals: [new NodeExternals()]
+    externals: isServer ? [new NodeExternals()] : []
   };
 };
 
-module.exports = server;
+module.exports = [makeConfig("server"), makeConfig("client")];
