@@ -7,6 +7,6 @@ export const PatchCategorySchema = Joi.object({
 });
 
 export const CategorySchema = Joi.object({
-  id: Joi.number().optional(),
+  categoryId: Joi.number().optional(),
   name: Joi.string().label("Name")
 });

@@ -1,10 +1,15 @@
 import Category from "../models/Category";
-import client from "../db";
 import { asyncCatchWrapper } from "../../utils";
 
+export const createCategory = asyncCatchWrapper(async (req, res) => {
+  const category = new Category(req.body);
+  await category.save();
+  res.send({ category });
+});
+
 export const getCategory = asyncCatchWrapper(async (req, res) => {
-  const { id } = req.params;
-  const category = await Category.findById(id);
+  const { categoryId } = req.params;
+  const category = await Category.findById(categoryId);
   return res.send({ category });
 });
 
@@ -14,8 +19,8 @@ export const getCategories = asyncCatchWrapper(async (req, res) => {
 });
 
 export const updateCategory = asyncCatchWrapper(async (req, res) => {
-  const { id } = req.params;
-  const category = await Category.findById(id);
+  const { categoryId } = req.params;
+  const category = await Category.findById(categoryId);
   for (let key in req.body) {
     category[key] = req.body[key];
   }
@@ -24,8 +29,8 @@ export const updateCategory = asyncCatchWrapper(async (req, res) => {
 });
 
 export const deleteCategory = asyncCatchWrapper(async (req, res) => {
-  const { id } = req.params;
-  const category = await Category.findById(id);
-  const rowCount = await category.delete();
-  return res.send({ rowCount });
+  const { categoryId } = req.params;
+  const category = await Category.findById(categoryId);
+  const count = await category.delete();
+  return res.send({ count });
 });

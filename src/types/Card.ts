@@ -1,5 +1,5 @@
 export default interface Card {
-  id?: number;
+  cardId?: number;
   categoryId?: number;
   front: string;
   back: string;

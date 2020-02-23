@@ -28,7 +28,9 @@ class Resource {
   }
   async save() {
     const validated = this.validate(this);
-    return validated.id
+    const name = this.constructor.name;
+    const idName = name.substr(0, 1).toLowerCase() + name.substr(1) + "Id";
+    return validated[idName]
       ? await this._put(validated)
       : await this._insert(validated);
   }

@@ -6,7 +6,7 @@ import NamedError from "./NamedError";
 
 export default class Category extends Resource {
   name: string;
-  id?: number;
+  categoryId?: number;
   static schema = CategorySchema;
 
   constructor(props: CategoryType) {
@@ -16,7 +16,7 @@ export default class Category extends Resource {
   static async findById(id) {
     const { rows, rowCount } = await client.query(
       `
-        SELECT category_id id, name
+        SELECT category_id "categoryId", name
         FROM categories
         WHERE category_id = $1
       `,
@@ -30,7 +30,7 @@ export default class Category extends Resource {
 
   static async find() {
     const { rows } = await client.query(`
-      SELECT category_id id, name
+      SELECT category_id "categoryId", name
       FROM categories
       ORDER BY category_id DESC
     `);
@@ -42,12 +42,12 @@ export default class Category extends Resource {
       `
         INSERT INTO categories (name)
         VALUES ($1)
-        RETURNING category_id "id"
+        RETURNING category_id "categoryId"
       `,
       [this.name]
     );
     if (!rowCount) throw new Error("Something went wrong");
-    this.id = rows[0].id;
+    this.categoryId = rows[0].categoryId;
     return this;
   }
 
@@ -58,7 +58,7 @@ export default class Category extends Resource {
         SET name = $1
         WHERE category_id = $2
       `,
-      [this.name, this.id]
+      [this.name, this.categoryId]
     );
     if (!rowCount) throw new Error("Something went wrong");
     return this;
@@ -70,7 +70,7 @@ export default class Category extends Resource {
         DELETE FROM categories
         WHERE category_id = $1
       `,
-      [this.id]
+      [this.categoryId]
     );
     if (!rowCount) throw new NamedError("Server", "Something went wrong");
     return rowCount;
