@@ -3,6 +3,7 @@ const path = require("path");
 const NodeExternals = require("webpack-node-externals");
 const Dotenv = require("dotenv-webpack");
 const Nodemon = require("nodemon-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 const makeConfig = name => env => {
   const mode = env.production ? "production" : "development";
@@ -14,25 +15,36 @@ const makeConfig = name => env => {
           watch: path.resolve("./dist")
         })
       ]
-    : [new CleanWebpackPlugin()];
+    : [
+        new HtmlWebpackPlugin({
+          template: __dirname + "/src/server/public/index.html",
+          favicon: __dirname + "/src/server/public/favicon.ico",
+          filename: "template.html",
+          minify: {
+            removeTagWhitespace: true,
+            collapseWhitespace: true
+          }
+        })
+      ];
 
-  if (!env.production) plugins.push(new Dotenv());
+  if (!env.production && isServer) {
+    plugins.push(new Dotenv());
+    plugins.push(new CleanWebpackPlugin());
+  }
+  const outputPath = isServer
+    ? __dirname + "/dist"
+    : __dirname + "/dist/public";
 
-  const outputPath = isServer ? [] : ["public"];
+  const target = isServer ? "node" : "web";
   return {
     mode,
     entry: {
-      [name]: path.resolve(
-        __dirname,
-        "src",
-        name,
-        isServer ? "index.ts" : "index.tsx"
-      )
+      [name]: `${__dirname}/src/${name}/${isServer ? "index.ts" : "index.tsx"}`
     },
     output: {
       filename: "[name].js",
-      path: path.resolve(__dirname, "dist", ...outputPath),
-      publicPath: "/public"
+      path: outputPath,
+      publicPath: isServer ? "/public" : "/"
     },
     module: {
       rules: [
@@ -58,7 +70,11 @@ const makeConfig = name => env => {
     resolve: {
       extensions: [".tsx", ".ts", ".js"]
     },
-    externals: isServer ? [new NodeExternals()] : []
+    externals: isServer ? [new NodeExternals()] : [],
+    target,
+    node: {
+      __dirname: true
+    }
   };
 };
 

@@ -1,6 +1,5 @@
 import server from "./server";
 import "./db";
-import "./models/Card";
 
 const PORT = process.env.PORT || 3001;
 
