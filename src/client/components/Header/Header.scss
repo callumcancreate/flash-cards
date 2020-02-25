@@ -1,0 +1,13 @@
+@import "../../globals/colors";
+@import "../../globals/mixins";
+
+.header {
+  @include boxShadow();
+  background-color: white;
+  flex: 1;
+  // color: $primary;
+  cursor: default;
+  .container {
+    @include flex(space-between);
+  }
+}

@@ -59,6 +59,16 @@ const makeConfig = name => env => {
           use: ["babel-loader", "eslint-loader"]
         },
         {
+          test: /\.s[ac]ss$/i,
+          use: isServer
+            ? "ignore-loader"
+            : ["style-loader", "css-loader", "sass-loader"]
+        },
+        {
+          test: /\.css$/i,
+          use: isServer ? "ignore-loader" : ["style-loader", "css-loader"]
+        },
+        {
           enforce: "pre",
           test: /\.js$/,
           use: "source-map-loader"
