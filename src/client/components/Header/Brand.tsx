@@ -1,5 +1,5 @@
 import React from "react";
-import { history } from "../../index";
+import history from "../../constants/history";
 import "./Brand.scss";
 
 const Brand = () => (

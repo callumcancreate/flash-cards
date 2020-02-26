@@ -6,7 +6,6 @@ const Nodemon = require("nodemon-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 const makeConfig = name => env => {
-  const mode = env.production ? "production" : "development";
   const isServer = name === "server";
   let plugins = isServer
     ? [
@@ -31,19 +30,15 @@ const makeConfig = name => env => {
     plugins.push(new Dotenv());
     plugins.push(new CleanWebpackPlugin());
   }
-  const outputPath = isServer
-    ? __dirname + "/dist"
-    : __dirname + "/dist/public";
 
-  const target = isServer ? "node" : "web";
   return {
-    mode,
+    mode: env.production ? "production" : "development",
     entry: {
       [name]: `${__dirname}/src/${name}/${isServer ? "index.ts" : "index.tsx"}`
     },
     output: {
       filename: "[name].js",
-      path: outputPath,
+      path: isServer ? __dirname + "/dist" : __dirname + "/dist/public",
       publicPath: isServer ? "/public" : "/"
     },
     module: {
@@ -81,7 +76,7 @@ const makeConfig = name => env => {
       extensions: [".tsx", ".ts", ".js"]
     },
     externals: isServer ? [new NodeExternals()] : [],
-    target,
+    target: isServer ? "node" : "web",
     node: {
       __dirname: true
     }

@@ -1,5 +1,5 @@
-@import "../../globals/colors";
-@import "../../globals/mixins";
+@import "../../constants/colors";
+@import "../../constants/mixins";
 
 .header {
   @include boxShadow();

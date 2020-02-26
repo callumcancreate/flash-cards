@@ -1,6 +1,10 @@
 import { useEffect } from "react";
 
-const body = document.querySelector("body");
+const noDocumentBody = { style: { overflow: "" } };
+const body =
+  typeof document !== "undefined"
+    ? document.querySelector("body")
+    : noDocumentBody;
 
 const useBodyScrollLock = isLocked => {
   useEffect(() => {

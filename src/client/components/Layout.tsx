@@ -1,7 +1,7 @@
 import React from "react";
 import Header from "./Header";
 import Footer from "./Footer";
-import { history } from "../index";
+import history from "../constants/history";
 
 interface Props {
   header?: JSX.Element;
