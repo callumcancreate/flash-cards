@@ -18,7 +18,8 @@ const Layout: React.FC<Props> = ({
   noHeader
 }) => {
   const defaultLinks = [
-    { onClick: () => history.push("/about"), label: "About" }
+    { onClick: () => history.push("/"), label: "Home" },
+    { onClick: () => history.push("/login"), label: "Login" }
   ];
   return (
     <>
