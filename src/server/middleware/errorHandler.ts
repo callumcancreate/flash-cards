@@ -27,5 +27,5 @@ export default function errorHandler(e, req, res, next) {
       e.error = "Internal server error";
   }
   console.log(e);
-  res.status(e.status).send({ error: e.error, errorFields: e.errorFields });
+  res.status(e.status).send({ error: e.error, errors: e.errors });
 }

@@ -2,34 +2,26 @@ DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 
 
-CREATE TABLE public.categories
+CREATE TABLE public.tags
 (
-  "category_id"   SERIAL PRIMARY KEY,
-  "name"          TEXT NOT NULL
+  "tag_id"        SERIAL PRIMARY KEY,
+  "tag"           TEXT UNIQUE NOT NULL
 );
 
 
 CREATE TABLE public.cards
 (
   "card_id"         SERIAL PRIMARY KEY NOT NULL,
-  "category_id"     INT NOT NULL REFERENCES categories ON DELETE CASCADE,
   "front"           TEXT NOT NULL,
   "back"            TEXT NOT NULL,
   "hint"            TEXT
 );
 
 
-CREATE TABLE  public.sub_categories
+CREATE TABLE  public.card_tags
 (
-  "sub_category_id" SERIAL PRIMARY KEY,
-  "category_id"     INT REFERENCES categories ON DELETE CASCADE,
-  "name"            TEXT NOT NULL
+  "card_id"       INT REFERENCES cards ON DELETE CASCADE,
+  "tag_id"        INT REFERENCES tags ON DELETE CASCADE
 );
 
-
-CREATE TABLE public.sub_category_cards
-(
-  "card_id"         INT REFERENCES cards,
-  "sub_category_id" INT REFERENCES sub_categories ON DELETE CASCADE
-);
 

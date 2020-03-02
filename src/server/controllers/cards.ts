@@ -1,21 +1,16 @@
 import Card from "../models/Card";
-import Category from "../models/Category";
 
 import { asyncCatchWrapper, validateSchema } from "../../utils";
 import NamedError from "../models/NamedError";
 import { DeleteCardSchema } from "../Schemas/Card";
 
 export const createCard = asyncCatchWrapper(async (req, res) => {
-  const { categoryId } = await Category.findById(req.params.categoryId);
-  const card = await new Card({
-    ...req.body,
-    categoryId
-  }).save();
-
+  const card = await new Card(req.body).save();
   res.send({ card });
 });
 
 export const getCard = asyncCatchWrapper(async (req, res) => {
+  console.log(req.params.cardId);
   const cards = await Card.find(req.params);
   const card = cards[0];
   if (!card)

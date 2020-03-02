@@ -1,6 +1,6 @@
 export default interface Card {
   cardId?: number;
-  categoryId?: number;
+  tags: string[];
   front: string;
   back: string;
   hint?: string;
