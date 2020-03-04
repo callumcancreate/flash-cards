@@ -1,7 +1,7 @@
 import client from "../db";
 import Resource from "./Resource";
 import CardType from "../../types/Card";
-import { CardSchema } from "../Schemas/Card";
+import { CardSchema, CardFindFilter, CardFindOptions } from "../Schemas/Card";
 import NamedError from "./NamedError";
 import { validateSchema, camelToSnake } from "../../utils";
 
@@ -141,27 +141,104 @@ export default class Card extends Resource {
     }
   }
 
-  static async find(filter, options?) {
-    const { value } = validateSchema(filter, CardSchema);
-    const conditions = Object.keys(value)
-      .map((key, i) => `${camelToSnake(key)} = $${i + 1}`)
-      .join(" AND ");
+  static async findById(id) {
+    id = parseInt(id);
+    const cards = await client.query(
+      `
+        with tag_arrays as (
+          select ct.card_id, array_agg(t.tag) as tags
+          from card_tags ct inner join tags t on ct.tag_id = t.tag_id
+          group by ct.card_id 
+        )
+        select c.card_id "cardId", c.front, c.back, c.hint, ta.tags
+        from tag_arrays ta inner join cards c on ta.card_id = c.card_id
+        where c.card_id = $1
+        limit 1
+      `,
+      [id]
+    );
+    const card = cards.rows[0];
+    if (!card)
+      throw new NamedError("NotFound", `Unable to find card with id of ${id}`);
+    return new Card(card);
+  }
 
-    // with ts as (
-    //   select unnest(array['tag1','tag2']) as tag
-    // ), tids as (
-    //   select ts.tag, tags.tag_id from ts left join tags on ts.tag = tags.tag
-    // )
-    // select ct.card_id, tids.tag from card_tags ct left join tids on ct.tag_id = tids.tag_id
+  static async find(filter, options?) {
+    filter = validateSchema(filter, CardFindFilter, { presence: "optional" });
+
+    if (filter.errors)
+      throw new NamedError(
+        "Client",
+        "Unable to validate find filter",
+        filter.errors
+      );
+
+    options = validateSchema(options, CardFindOptions, {
+      presence: "optional"
+    });
+
+    if (options.errors)
+      throw new NamedError(
+        "Client",
+        "Unable to validate find options",
+        options.errors
+      );
+
+    const conditions = Object.keys(filter.value).length
+      ? "WHERE " +
+        Object.keys(filter.value)
+          .map((key, i) => `c.${camelToSnake(key)} = $${i + 5}`)
+          .join(" AND ")
+      : "";
+    console.log(conditions);
 
     const { rows } = await client.query(
       `
-        SELECT category_id "categoryId", card_id "cardId", front, back, hint
-        FROM cards
-        WHERE ${conditions}
-        ORDER BY card_id DESC
+        with required_tags as (
+          select tags.tag_id
+          from (select unnest($1::text[]) as tag) as t(tag) 
+          inner join tags on tags.tag = t.tag
+        ),
+        excluded_tags as (
+          select tags.tag_id 
+          from (select unnest($2::text[]) as tag) as t(tag) 
+          inner join tags on tags.tag = t.tag
+        ),
+        filtered_cards as (
+          select 
+            ct.card_id,
+            array_agg(t.tag) as tags
+          from 
+            card_tags ct
+            join tags t on ct.tag_id = t.tag_id
+            left join excluded_tags et on ct.tag_id = et.tag_id
+            left join required_tags rt on ct.tag_id = rt.tag_id
+          group by ct.card_id 
+          having
+            count(et.tag_id) = 0
+            and count(rt.tag_id) = cardinality($1)
+        )
+        select 
+        c.card_id "cardId", 
+          c.front, 
+          c.back, 
+          c.hint, 
+           fc.tags
+          from 
+        filtered_cards fc
+          inner join cards c on fc.card_id = c.card_id
+        ${conditions}
+        order by c.card_id
+        limit $3
+        offset $4
       `,
-      Object.values(value)
+      [
+        options.value.tagsAll || [],
+        options.value.tagsNone || [],
+        options.value.limit,
+        options.value.offset,
+        ...Object.values(filter.value)
+      ]
     );
     return rows.map(c => new Card(c));
   }

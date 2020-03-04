@@ -10,19 +10,12 @@ export const createCard = asyncCatchWrapper(async (req, res) => {
 });
 
 export const getCard = asyncCatchWrapper(async (req, res) => {
-  console.log(req.params.cardId);
-  const cards = await Card.find(req.params);
-  const card = cards[0];
-  if (!card)
-    throw new NamedError(
-      "NotFound",
-      `Unable to find card with id ${req.params.cardId}`
-    );
+  const card = await Card.findById(req.params.cardId);
   return res.send({ card });
 });
 
 export const getCards = asyncCatchWrapper(async (req, res) => {
-  const cards = await Card.find(req.params);
+  const cards = await Card.find(req.params, req.query);
   return res.send({ cards });
 });
 
