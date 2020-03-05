@@ -116,7 +116,7 @@ export default class Card extends Resource {
       await client.query(
         `
         WITH ts AS (
-          SELECT UNNEST ($1) AS tag
+          SELECT UNNEST ($1::text[]) AS tag
         ), tids AS (
         SELECT tag_id FROM ts JOIN tags ON tags.tag = ts.tag
         )
@@ -173,7 +173,7 @@ export default class Card extends Resource {
         filter.errors
       );
 
-    options = validateSchema(options, CardFindOptions, {
+    options = validateSchema(options || {}, CardFindOptions, {
       presence: "optional"
     });
 
@@ -190,7 +190,6 @@ export default class Card extends Resource {
           .map((key, i) => `c.${camelToSnake(key)} = $${i + 5}`)
           .join(" AND ")
       : "";
-    console.log(conditions);
 
     const { rows } = await client.query(
       `
@@ -247,7 +246,7 @@ export default class Card extends Resource {
     const { rowCount } = await client.query(
       `
         DELETE FROM cards
-        card_id = $1
+        WHERE card_id = $1
       `,
       [this.cardId]
     );

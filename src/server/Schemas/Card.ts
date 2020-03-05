@@ -13,10 +13,10 @@ export const DeleteCardSchema = Joi.object({
 });
 
 export const PatchCardSchema = Joi.object({
-  front,
-  back,
-  tags,
-  hint
+  front: front.optional(),
+  back: back.optional(),
+  tags: tags.optional(),
+  hint: hint.optional()
 });
 
 export const CardFindFilter = Joi.object({
@@ -34,7 +34,7 @@ export const CardFindOptions = Joi.object({
 });
 
 export const CardSchema = Joi.object({
-  cardId,
+  cardId: cardId.optional(),
   front,
   back,
   tags,
