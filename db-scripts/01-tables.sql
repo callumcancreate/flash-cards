@@ -28,7 +28,8 @@ CREATE TABLE  public.card_tags
 CREATE TABLE public.categories
 (
   "category_id"   SERIAL PRIMARY KEY NOT NULL,
-  "name"          TEXT UNIQUE NOT NULL
+  "name"          TEXT UNIQUE NOT NULL,
+  "parent_id"     INT REFERENCES categories
 );
 
 
