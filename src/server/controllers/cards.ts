@@ -1,5 +1,4 @@
 import Card from "../models/Card";
-
 import { asyncCatchWrapper, validateSchema } from "../../utils";
 import NamedError from "../models/NamedError";
 import { DeleteCardSchema } from "../Schemas/Card";

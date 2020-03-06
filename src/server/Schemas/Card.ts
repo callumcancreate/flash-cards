@@ -1,4 +1,5 @@
 import Joi from "@hapi/joi";
+import { limit, offset } from "./Find";
 
 const cardId = Joi.number().label("Card ID");
 const front = Joi.string().label("Front");
@@ -29,8 +30,8 @@ export const CardFindFilter = Joi.object({
 export const CardFindOptions = Joi.object({
   tagsAll: Joi.array().items(Joi.string()),
   tagsNone: Joi.array().items(Joi.string()),
-  limit: Joi.number().min(0),
-  offset: Joi.number().min(0)
+  limit,
+  offset
 });
 
 export const CardSchema = Joi.object({

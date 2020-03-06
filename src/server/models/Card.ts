@@ -227,7 +227,7 @@ export default class Card extends Resource {
         filtered_cards fc
           inner join cards c on fc.card_id = c.card_id
         ${conditions}
-        order by c.card_id
+        order by abc
         limit $3
         offset $4
       `,
