@@ -2,6 +2,7 @@ import React from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import history from "../constants/history";
+import CircleMenu from "./Header/CircleMenu";
 
 interface Props {
   header?: JSX.Element;
@@ -21,6 +22,7 @@ const Layout: React.FC<Props> = ({
     { onClick: () => history.push("/"), label: "Home" },
     { onClick: () => history.push("/login"), label: "Login" }
   ];
+
   return (
     <>
       <header>

@@ -7,7 +7,7 @@
 
 nav {
   .nav-container {
-    $transition: 150ms;
+    $transition: 200ms;
     &.open {
       opacity: 1;
       visibility: visible;
@@ -24,22 +24,17 @@ nav {
     transition: opacity $transition ease-in-out, visibility $transition;
 
     .nav-slider {
+      max-width: 400px;
+
       &.open {
-        width: 60%;
+        width: 80%;
       }
       @include boxShadow();
       @include flex(auto, flex-end, column);
+      padding-top: 10%;
       background-color: white;
       width: 0%;
       transition: width $transition ease-in-out;
-      i {
-        margin: 0.4rem !important;
-        @include flex();
-        cursor: pointer;
-        &:hover {
-          color: rgba($primary, 0.4);
-        }
-      }
 
       ul {
         list-style: none;
@@ -51,54 +46,9 @@ nav {
           padding: 0.5rem;
           text-align: center;
           cursor: pointer;
-          &:not(:first-child) {
-            border-top: 1px solid rgba($primary, 0.3);
-          }
           &:hover {
             background-color: rgba($primary, 0.7);
             color: white;
-          }
-        }
-      }
-    }
-  }
-
-  @include media-breakpoint-up(sm) {
-    @include flex();
-    flex: 1;
-    .nav-container {
-      position: static;
-      background-color: inherit;
-      visibility: visible;
-      opacity: 1;
-      height: auto;
-      width: auto;
-
-      .nav-slider {
-        width: auto;
-        box-shadow: none;
-        background-color: none;
-
-        i {
-          display: none;
-        }
-        ul {
-          @include flex(flex-end);
-          li:first-child ~ li {
-            margin-left: 1rem;
-          }
-          li {
-            &:not(:first-child) {
-              border-top: none;
-            }
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
-            &:hover {
-              background-color: inherit;
-              color: inherit;
-              border-bottom: 0.1rem solid $accent;
-              padding-bottom: 0.4rem;
-            }
           }
         }
       }

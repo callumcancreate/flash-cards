@@ -1,10 +1,10 @@
 import React, { useState, MouseEvent } from "react";
-import Hamburger from "./Hamburger";
+import CircleMenu from "./CircleMenu";
 import useBodyScrollLock from "../../hooks/useBodyScrollLock";
 import "./Nav.scss";
 
 export interface Link {
-  onClick: (e?: MouseEvent) => any;
+  onClick: (e?: React.MouseEvent) => any;
   label: string;
 }
 interface Props {
@@ -19,14 +19,18 @@ const Nav: React.FC<Props> = ({ links = [] }) => {
 
   return (
     <div>
-      <Hamburger onClick={() => setIsNavOpen(true)} />
+      <div>
+        <CircleMenu
+          isOpen={isNavOpen}
+          onClick={() => setIsNavOpen(!isNavOpen)}
+        />
+      </div>
       <nav>
         <div
           className={`nav-container${navStatus}`}
           onClick={() => setIsNavOpen(false)}
         >
           <div className={`nav-slider${navStatus}`}>
-            <i className="ui delete icon" />
             <ul>
               {links.map(({ onClick, label }, i) => (
                 <li key={i} onClick={onClick}>
