@@ -174,14 +174,14 @@ export default class Category extends Resource {
   static async find(filter, options?) {
     const { rows } = await client.query(
       `
-      with tag_arrays as (
-        select ct.category_id, array_agg(t.tag) as tags
-        from category_tags ct inner join tags t on ct.tag_id = t.tag_id
-        group by ct.category_id 
-      )
-      select c.category_id "categoryId", c.name, ta.tags
-      from tag_arrays ta inner join categories c on ta.category_id = c.category_id
-    `
+        with tag_arrays as (
+          select ct.category_id, array_agg(t.tag) as tags
+          from category_tags ct inner join tags t on ct.tag_id = t.tag_id
+          group by ct.category_id 
+        )
+        select c.category_id "categoryId", c.name, ta.tags
+        from tag_arrays ta inner join categories c on ta.category_id = c.category_id
+      `
     );
     return rows.map(c => new Category(c));
   }
