@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import server from "../../apis/serverApi";
 import Layout from "../components/Layout";
 import useResource from "../hooks/useResource";
+import ErrorMessage from "../components/ErrorMessage";
+import CategoryList from "../components/CategoryList";
 
 const Home = () => {
   const [data, error, isLoading] = useResource("/categories", {});
@@ -9,11 +10,8 @@ const Home = () => {
   return (
     <Layout>
       <div className="container py-4">
-        <ul>
-          {categories.map(cat => (
-            <li key={cat.categoryId}>{cat.name}</li>
-          ))}
-        </ul>
+        <ErrorMessage error={error} />
+        <CategoryList categories={categories} />
       </div>
     </Layout>
   );

@@ -1,0 +1,16 @@
+@import "../../constants/mixins";
+
+.category-list-item {
+  background: white;
+  padding: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  &:not(:last-child) {
+    border-bottom: none;
+  }
+  cursor: default;
+
+  &:hover {
+    cursor: pointer;
+    background: rgba(100, 100, 100, 0.1);
+  }
+}
