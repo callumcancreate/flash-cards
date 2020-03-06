@@ -24,4 +24,16 @@ CREATE TABLE  public.card_tags
   "tag_id"        INT REFERENCES tags ON DELETE CASCADE
 );
 
+-- A category is a named collection of tags
+CREATE TABLE public.categories
+(
+  "category_id"   SERIAL PRIMARY KEY NOT NULL,
+  "name"          TEXT UNIQUE NOT NULL
+);
 
+
+CREATE TABLE public.category_tags
+(
+  "category_id"   INT REFERENCES categories ON DELETE CASCADE,
+  "tag_id"        INT REFERENCES tags ON DELETE CASCADE
+);

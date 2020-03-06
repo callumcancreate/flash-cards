@@ -18,10 +18,11 @@ export default class Card extends Resource {
   }
 
   async _insert() {
-    const { tags, front, back, hint } = this;
     try {
+      const { tags, front, back, hint } = this;
       await client.query("BEGIN");
 
+      // Create card
       const cardInsertQuery = await client.query(
         `
         INSERT INTO cards (front, back, hint)
@@ -33,6 +34,7 @@ export default class Card extends Resource {
       if (!cardInsertQuery.rowCount) throw new Error("Something went wrong");
       const cardId = cardInsertQuery.rows[0].card_id;
 
+      // Create tag if needed and insert card tags
       const tagQueries = tags.map(async tag => {
         const { rowCount } = await client.query(
           `
@@ -125,10 +127,11 @@ export default class Card extends Resource {
           left join tids on tids.tag_id = ct2.tag_id 
         WHERE 
           tids.tag_id IS NULL
-          AND ct.tag_id = ct2.tag_id 
+          AND ct.tag_id = ct2.tag_id
+          AND ct.card_id = $2
 
         `,
-        [tags]
+        [tags, cardId]
       );
       await Promise.all(tagQueries);
       await client.query("COMMIT");
@@ -227,7 +230,7 @@ export default class Card extends Resource {
         filtered_cards fc
           inner join cards c on fc.card_id = c.card_id
         ${conditions}
-        order by abc
+        order by c.card_id
         limit $3
         offset $4
       `,

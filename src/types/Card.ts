@@ -1,3 +1,5 @@
+import Tag from "./Tag";
+
 export default interface Card {
   cardId?: number;
   tags: string[];

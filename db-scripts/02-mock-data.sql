@@ -25,3 +25,12 @@ INSERT INTO card_tags (card_id, tag_id) VALUES
 (5, 2),
 (5, 3),
 (6, 3);
+
+
+INSERT INTO categories (name) VALUES ('1.category'),('2.category');
+
+INSERT INTO category_tags (category_id, tag_id) VALUES 
+(1, 1),
+(1, 2),
+(2, 2),
+(2, 3);
