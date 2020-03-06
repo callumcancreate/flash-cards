@@ -11,7 +11,7 @@ const CircleMenu: React.FC<Props> = ({ isOpen, onClick }) => {
     <div
       className={`circle-menu${isOpen ? " open" : ""}`}
       onClick={onClick}
-      style={{ top: "25px", right: "25px" }}
+      style={{ top: "3%", right: "3%" }}
     >
       <div className="bar1" />
       <div className="bar2" />

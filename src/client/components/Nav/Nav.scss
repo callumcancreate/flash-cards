@@ -31,7 +31,7 @@ nav {
       }
       @include boxShadow();
       @include flex(auto, flex-end, column);
-      padding-top: 10%;
+      padding-top: 10vh;
       background-color: white;
       width: 0%;
       transition: width $transition ease-in-out;

@@ -1,8 +1,7 @@
 import React from "react";
-import Header from "./Header";
+import Nav from "./Nav";
 import Footer from "./Footer";
 import history from "../constants/history";
-import CircleMenu from "./Header/CircleMenu";
 
 interface Props {
   header?: JSX.Element;
@@ -25,9 +24,7 @@ const Layout: React.FC<Props> = ({
 
   return (
     <>
-      <header>
-        {noHeader || header || <Header navLinks={defaultLinks} />}
-      </header>
+      <header>{noHeader || header || <Nav links={defaultLinks} />}</header>
       <main>
         <div>{children}</div>
       </main>
