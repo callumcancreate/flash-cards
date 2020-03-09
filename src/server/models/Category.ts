@@ -1,6 +1,7 @@
 import client from "../db";
 import Resource from "./Resource";
 import CategoryType from "../../types/Category";
+import TagType from "../../types/Tag";
 import { CategorySchema, CategoryFindOptions } from "../Schemas/Category";
 import NamedError from "./NamedError";
 import { validateSchema, camelToSnake } from "../../utils";
@@ -10,7 +11,7 @@ export default class Category extends Resource {
   parentId?: number;
   children?: Category[];
   name: string;
-  tags: string[];
+  tags: TagType[];
 
   static schema = CategorySchema;
 
@@ -20,47 +21,48 @@ export default class Category extends Resource {
 
   async _insert() {
     try {
-      const { tags, name } = this;
+      const { tags, name, parentId } = this;
       await client.query("BEGIN");
       const insertQuery = await client.query(
         `
-        INSERT INTO categories (name) VALUES ($1)
+        INSERT INTO categories (name, parent_id) VALUES ($1, $2)
         RETURNING category_id
       `,
-        [name]
+        [name, parentId]
       );
       if (!insertQuery.rowCount) throw new Error("Something went wrong");
 
       const categoryId = insertQuery.rows[0].category_id;
-      console.log("categoryId", categoryId);
 
-      const tagQueries = tags.map(async tag => {
-        const { rowCount } = await client.query(
-          `
-            WITH st AS (
-              SELECT tag_id FROM tags WHERE tag = $1
-            ), it AS (
-              INSERT INTO tags(tag)
-              SELECT $1
-              WHERE NOT EXISTS (SELECT 1 FROM st)
-              RETURNING tag_id
-            ), tid AS (
-              SELECT tag_id
-              FROM it UNION SELECT tag_id FROM st
-            )
-            INSERT INTO category_tags (category_id, tag_id)
-            SELECT $2, tid.tag_id
-            FROM tid
-            RETURNING category_id, tag_id
-          `,
-          [tag, categoryId]
-        );
-        if (!rowCount) throw new Error("Something went wrong");
-      });
-      await Promise.all(tagQueries);
+      const tagQueries = await Promise.all(
+        tags.map(async ({ tag }) => {
+          const { rows, rowCount } = await client.query(
+            `
+              WITH st AS (
+                SELECT tag_id FROM tags WHERE tag = $1
+              ), it AS (
+                INSERT INTO tags(tag)
+                SELECT $1
+                WHERE NOT EXISTS (SELECT 1 FROM st)
+                RETURNING tag_id
+              ), tid AS (
+                SELECT tag_id
+                FROM it UNION SELECT tag_id FROM st
+              )
+              INSERT INTO category_tags (category_id, tag_id)
+              SELECT $2, tid.tag_id 
+              FROM tid
+              RETURNING $1 tag, tag_id "tagId"
+            `,
+            [tag, categoryId]
+          );
+          if (!rowCount) throw new Error("Something went wrong");
+          return rows[0];
+        })
+      );
       await client.query("COMMIT");
       this.categoryId = categoryId;
-      console.log("this", this);
+      this.tags = tagQueries;
       return this;
     } catch (e) {
       await client.query("ROLLBACK");
@@ -72,7 +74,6 @@ export default class Category extends Resource {
     try {
       await client.query("BEGIN");
       const { tags, name, categoryId } = this;
-      console.log("this", this);
 
       // Update category name
       const categoryUpdateQuery = await client.query(
@@ -153,13 +154,30 @@ export default class Category extends Resource {
     id = parseInt(id);
     const { rows } = await client.query(
       `
-        with tag_arrays as (
-          select ct.category_id, array_agg(t.tag) as tags
-          from category_tags ct inner join tags t on ct.tag_id = t.tag_id
-          group by ct.category_id 
+        with recursive parent_tags as (
+          with base_tags as (
+            select t.tag, ct.tag_id, c.parent_id, c.category_id 
+            from category_tags ct
+            inner join categories c on ct.category_id = c.category_id 
+            inner join tags t on ct.tag_id = t.tag_id
+          )
+          select bt.tag, bt.tag_id, bt.parent_id, false as is_inherited
+          from base_tags bt
+          where bt.category_id = $1
+          union 
+          select bt.tag, bt.tag_id, bt.parent_id, true as is_inherited 
+          from parent_tags pt 
+          inner join base_tags bt on pt.parent_id = bt.category_id
+        ),
+        
+        json_tags as (
+          select array_agg(row_to_json(x)) as tags
+          from (select tag_id "tagId", tag, is_inherited "isInherited" from parent_tags order by tag_id) x
         )
-        select c.category_id "categoryId", c.name, ta.tags
-        from tag_arrays ta inner join categories c on ta.category_id = c.category_id
+        
+        
+        select c.category_id "categoryId", c.name, jt.tags
+        from categories c, json_tags jt
         where c.category_id = $1
         limit 1
       `,
