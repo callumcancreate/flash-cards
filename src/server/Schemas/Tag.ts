@@ -3,6 +3,7 @@ import { limit, offset } from "./Find";
 
 const tagId = Joi.number().label("Tag ID");
 const tag = Joi.string().label("Tag");
+const isInherited = Joi.boolean().optional();
 
 export const TagFindOptions = Joi.object({
   limit,
@@ -11,5 +12,6 @@ export const TagFindOptions = Joi.object({
 
 export const TagSchema = Joi.object({
   tagId: tagId.optional(),
-  tag
+  tag,
+  isInherited
 });

@@ -1,13 +1,15 @@
 import client from "../db";
 import Resource from "./Resource";
 import CardType from "../../types/Card";
+import TagType from "../../types/Tag";
 import { CardSchema, CardFindFilter, CardFindOptions } from "../Schemas/Card";
 import NamedError from "./NamedError";
 import { validateSchema, camelToSnake } from "../../utils";
+import Tag from "./Tag";
 
 export default class Card extends Resource {
   cardId?: number;
-  tags?: string[];
+  tags?: TagType[];
   front: string;
   back: string;
   hint?: string;
@@ -35,9 +37,10 @@ export default class Card extends Resource {
       const cardId = cardInsertQuery.rows[0].card_id;
 
       // Create tag if needed and insert card tags
-      const tagQueries = tags.map(async tag => {
-        const { rowCount } = await client.query(
-          `
+      const tagQueries = await Promise.all(
+        tags.map(async ({ tag }) => {
+          const { rows, rowCount } = await client.query(
+            `
             WITH st AS (
               SELECT tag_id FROM tags WHERE tag = $1
             ), it AS (
@@ -52,15 +55,17 @@ export default class Card extends Resource {
             INSERT INTO card_tags (card_id, tag_id)
             SELECT $2, tid.tag_id
             FROM tid
-            RETURNING card_id, tag_id
+            RETURNING $1 "tag", tag_id "tagId"
           `,
-          [tag, cardId]
-        );
-        if (!rowCount) throw new Error("Something went wrong");
-      });
-      await Promise.all(tagQueries);
+            [tag, cardId]
+          );
+          if (!rowCount) throw new Error("Something went wrong");
+          return rows[0];
+        })
+      );
       await client.query("COMMIT");
       this.cardId = cardId;
+      this.tags = tagQueries;
       return this;
     } catch (e) {
       console.log(e);
@@ -86,7 +91,7 @@ export default class Card extends Resource {
       );
       if (!cardUpdateQuery.rowCount) throw new Error("Something went wrong");
 
-      const tagQueries = tags.map(async tag => {
+      const tagQueries = tags.map(async ({ tag }) => {
         const { rowCount } = await client.query(
           `
             WITH st AS (
@@ -131,7 +136,7 @@ export default class Card extends Resource {
           AND ct.card_id = $2
 
         `,
-        [tags, cardId]
+        [tags.map(t => t.tag), cardId]
       );
       await Promise.all(tagQueries);
       await client.query("COMMIT");
@@ -148,13 +153,17 @@ export default class Card extends Resource {
     id = parseInt(id);
     const cards = await client.query(
       `
-        with tag_arrays as (
-          select ct.card_id, array_agg(t.tag) as tags
-          from card_tags ct inner join tags t on ct.tag_id = t.tag_id
-          group by ct.card_id 
+        with json_tags as (
+          select x."tagId",	row_to_json(x)as tag
+          from (select tag_id "tagId", tag from tags) x
+        ), 
+        tag_arrays as (
+          select ct.card_id, array_agg(jt.tag) as tags
+            from card_tags ct inner join json_tags jt on ct.tag_id = jt."tagId"
+            group by ct.card_id 
         )
-        select c.card_id "cardId", c.front, c.back, c.hint, ta.tags
-        from tag_arrays ta inner join cards c on ta.card_id = c.card_id
+        select c.card_id "cardId", c.front, c.back, c.hint, COALESCE(ta.tags, ARRAY[]::json[]) tags
+        from cards c left join tag_arrays ta on ta.card_id = c.card_id
         where c.card_id = $1
         limit 1
       `,
@@ -196,7 +205,11 @@ export default class Card extends Resource {
 
     const { rows } = await client.query(
       `
-        with required_tags as (
+        with json_tags as (
+          select x."tagId",	row_to_json(x)as tag
+          from (select tag_id "tagId", tag from tags) x
+        ),   
+        required_tags as (
           select tags.tag_id
           from (select unnest($1::text[]) as tag) as t(tag) 
           inner join tags on tags.tag = t.tag
@@ -209,10 +222,10 @@ export default class Card extends Resource {
         filtered_cards as (
           select 
             ct.card_id,
-            array_agg(t.tag) as tags
+            array_agg(jt.tag) as tags
           from 
             card_tags ct
-            join tags t on ct.tag_id = t.tag_id
+            join json_tags jt on ct.tag_id = jt."tagId"
             left join excluded_tags et on ct.tag_id = et.tag_id
             left join required_tags rt on ct.tag_id = rt.tag_id
           group by ct.card_id 

@@ -7,8 +7,11 @@ import { validateSchema, camelToSnake } from "../../utils";
 
 export default class Category extends Resource {
   categoryId?: number;
+  parentId?: number;
+  children?: Category[];
   name: string;
   tags: string[];
+
   static schema = CategorySchema;
 
   constructor(props: CategoryType) {

@@ -1,4 +1,5 @@
 import Joi from "@hapi/joi";
+import { TagSchema } from "./Tag";
 import { limit, offset } from "./Find";
 
 const cardId = Joi.number().label("Card ID");
@@ -6,7 +7,7 @@ const front = Joi.string().label("Front");
 const back = Joi.string().label("Back");
 const tags = Joi.array()
   .label("Tags")
-  .items(Joi.string());
+  .items(TagSchema);
 const hint = Joi.string().label("Hint");
 
 export const DeleteCardSchema = Joi.object({
