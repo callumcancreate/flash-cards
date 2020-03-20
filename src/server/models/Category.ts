@@ -23,62 +23,73 @@ export default class Category extends Resource {
     try {
       const { tags, name, parentId } = this;
       await client.query("BEGIN");
-      const insertQuery = await client.query(
+      const { rowCount, rows } = await client.query(
         `
-        INSERT INTO categories (name, parent_id) VALUES ($1, $2)
-        RETURNING category_id
+        with recursive parent_tags as (
+          select ct.tag_id, c.parent_id 
+          from category_tags ct 
+            inner join categories c on ct.category_id = c.category_id
+          where c.category_id = $1
+          union
+          select ct.tag_id, c.parent_id
+          from parent_tags pt
+            inner join category_tags ct on pt.parent_id = ct.category_id
+            inner join categories c on c.category_id = ct.category_id
+        ),
+        
+        insert_category as (
+          insert into categories (parent_id, name) values ($1, $2)
+          returning category_id
+        ),
+        
+        input_tags as (
+          select i.tag, t.tag_id from (select unnest($3::text[]) tag) i
+          left join tags t on i.tag = t.tag
+        ),
+        
+        filtered_tags as (
+          select it.tag, it.tag_id
+          from input_tags it
+          left join parent_tags pt on pt.tag_id = it.tag_id
+          where pt.tag_id is null
+        ),
+        insert_tags as (
+          insert into tags (tag) 
+          select ft.tag from filtered_tags ft	where ft.tag_id is null
+          returning tag, tag_id	
+        ),
+        child_tags as (
+          select it.tag, it.tag_id  from insert_tags it
+          union
+          select ft.tag, ft.tag_id from filtered_tags ft where ft.tag_id is not null
+        ),
+        
+        insert_category_tags as (
+          insert into category_tags (category_id, tag_id)
+          select ic.category_id, ct.tag_id  from insert_category ic, child_tags ct	
+        ),
+        
+        combined_tags as (
+          select ct.tag, ct.tag_id "tagId", false "isInherited" 
+          from child_tags ct
+          union
+          select i.tag, i.tag_id "tagId", true "isInherited" 
+          from input_tags i 
+          inner join parent_tags pt on i.tag_id = pt.tag_id
+        )
+        
+        select 
+          ic.category_id,
+          (select array_agg(row_to_json(x)) from (select * from combined_tags order by "tagId") x)	tags
+        from insert_category ic
       `,
-        [name, parentId]
+        [parentId, name, tags.map(v => v.tag)]
       );
-      if (!insertQuery.rowCount) throw new Error("Something went wrong");
-
-      const categoryId = insertQuery.rows[0].category_id;
-
-      const tagQueries = await Promise.all(
-        tags.map(async ({ tag }) => {
-          const { rows, rowCount } = await client.query(
-            `
-              with recursive parent_tags as (
-                with base_tags as (
-                  select t.tag, ct.tag_id, c.parent_id, c.category_id 
-                  from category_tags ct
-                  inner join categories c on ct.category_id = c.category_id 
-                  inner join tags t on ct.tag_id = t.tag_id
-                )
-                select bt.tag, bt.tag_id, bt.parent_id, false as is_inherited
-                from base_tags bt
-                where bt.category_id = $1
-                union 
-                select bt.tag, bt.tag_id, bt.parent_id, true as is_inherited 
-                from parent_tags pt 
-                inner join base_tags bt on pt.parent_id = bt.category_id
-              )
-              WITH st AS (
-                SELECT tag_id FROM tags WHERE tag = $1
-              ), it AS (
-                INSERT INTO tags(tag)
-                SELECT $1
-                WHERE NOT EXISTS (SELECT 1 FROM st)
-                RETURNING tag_id
-              ), tid AS (
-                SELECT tag_id
-                FROM it UNION SELECT tag_id FROM st
-              )
-              INSERT INTO category_tags (category_id, tag_id)
-              SELECT $2, tid.tag_id 
-              FROM tid
-              RETURNING $1 tag, tag_id "tagId"
-            `,
-            [tag, categoryId]
-          );
-          if (!rowCount) throw new Error("Something went wrong");
-          return rows[0];
-        })
-      );
+      console.log(rows);
       await client.query("COMMIT");
-      this.categoryId = categoryId;
-      this.tags = tagQueries;
-      return this;
+      this.tags = rows[0].tags;
+      this.categoryId = rows[0].category_id;
+      return rows[0];
     } catch (e) {
       await client.query("ROLLBACK");
       throw e;

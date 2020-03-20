@@ -6,7 +6,7 @@ import NamedError from "../models/NamedError";
 export const createCategory = asyncCatchWrapper(async (req, res) => {
   const category = new Category(req.body);
   await category.save();
-  res.send({ category });
+  res.status(201).send({ category });
 });
 
 export const getCategory = asyncCatchWrapper(async (req, res) => {

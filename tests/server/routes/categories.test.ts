@@ -50,11 +50,8 @@ describe("POST /categories", () => {
     expect(q1.rows[0].parent_id).toBe(c4.parentId);
 
     // Check new tag added to table
-    const q2 = await client.query(
-      "SELECT * FROM tags WHERE tag = 'new tag' returning tag_id"
-    );
+    const q2 = await client.query("SELECT * FROM tags WHERE tag = 'new tag'");
     expect(q2.rowCount).toBe(1);
-    expect(q2.rows[0].tag).toBe("new tag");
     const newTagId = q2.rows[0].tag_id;
 
     // Check existing tag not added to table
@@ -66,9 +63,10 @@ describe("POST /categories", () => {
     // Check category tags added to table
     const q4 = await client.query(
       "SELECT * FROM category_tags WHERE category_id = $1",
-      newCatId
+      [newCatId]
     );
-    expect(q4.rowCount).toBe(2);
+    console.log(q4.rows);
+    expect(q4.rowCount).toBe(1);
     q4.rows.forEach(row => expect(row.tag_id).toBe(newTagId));
   });
   it("Doesn't create a new category", async () => {});
