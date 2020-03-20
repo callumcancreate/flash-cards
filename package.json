@@ -7,7 +7,7 @@
     "start": "node dist/server.bundle.js",
     "build": "webpack --env.production",
     "dev": "webpack --env.development --watch",
-    "test": "jest --detectOpenHandles"
+    "test": "jest --detectOpenHandles --silent --verbose"
   },
   "keywords": [],
   "author": "",

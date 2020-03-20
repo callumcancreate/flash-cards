@@ -40,7 +40,15 @@ export const updateCategory = asyncCatchWrapper(async (req, res) => {
 });
 
 export const deleteCategory = asyncCatchWrapper(async (req, res) => {
-  const category = await Category.findById(req.params.categoryId);
-  const count = await category.delete();
+  const { withChildren } = req.query;
+  const count = withChildren
+    ? await Category.deleteById(req.params.categoryId)
+    : await Category.unlinkAndDeleteById(req.params.categoryId);
+
+  if (!count)
+    throw new NamedError(
+      "NotFound",
+      `Unable to find category with id ${req.params.categoryId}`
+    );
   return res.send({ count });
 });

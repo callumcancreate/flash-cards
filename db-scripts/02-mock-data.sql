@@ -9,7 +9,9 @@ INSERT INTO cards (front, back, hint) VALUES
 INSERT INTO tags (tag) VALUES
 ('1.tag'),
 ('2.tag'),
-('3.tag');
+('3.tag'),
+('4.tag'),
+('5.tag');
 
 INSERT INTO card_tags (card_id, tag_id) VALUES
 (1, 1),
@@ -29,11 +31,13 @@ INSERT INTO card_tags (card_id, tag_id) VALUES
 
 INSERT INTO categories (name) VALUES ('1.category'),('2.category');
 
-INSERT INTO categories (name, parent_id) VALUES ('1.child', 1);
+INSERT INTO categories (name, parent_id) VALUES ('3.category', 1), ('4.category', 3) ;
 
 INSERT INTO category_tags (category_id, tag_id) VALUES 
 (1, 1),
 (1, 2),
 (2, 2),
 (2, 3),
-(3, 3);
+(3, 3),
+(4, 4),
+(4, 5);

@@ -28,48 +28,93 @@ afterAll(async () => await client.release());
 
 describe("POST /categories", () => {
   it("Creates a new category", async () => {
-    // Category has 1 existing tag and 1 new tag
-    const c4 = {
+    const newCatId = Object.keys(categories).length + 1;
+    const newTagId = Object.keys(tags).length + 1;
+    const newCategory = {
       parentId: 1,
-      tags: [{ tag: "new tag" }, tags[2]],
-      name: "category4"
+      tags: [tags[2], { tag: "new tag" }],
+      name: "category" + newCatId
+    };
+
+    const response = await request
+      .post(`/api/v1/categories`)
+      .send(newCategory)
+      .expect(201);
+
+    expect(response.body.category).toMatchObject(newCategory);
+
+    const { rows, rowCount } = await client.query(
+      `
+        with json_tags as (
+          select x."tagId", row_to_json(x)  tag
+          from (select t.tag_id "tagId", t.tag from tags t) x	 
+        )        
+        select 
+          c.category_id "categoryId", 
+          c.name, 
+          c.parent_id "parentId",
+          array_agg(jt.tag) tags,
+          (select count(tag_id) from tags)::int count
+        
+        from categories c 
+        inner join  category_tags ct on c.category_id = ct.category_id 
+        inner join json_tags jt on jt."tagId" = ct.tag_id
+        where c.category_id = $1
+        group by c.category_id 
+      `,
+      [newCatId]
+    );
+    expect(rowCount).toBe(1);
+    expect(rows[0]).toMatchObject({
+      ...newCategory,
+      tags: newCategory.tags.slice(1) // remove inherited tag
+    });
+    expect(rows[0].tags[0].tagId).toBe(newTagId); // Check new tag added
+    expect(rows[0].count).toBe(newTagId); // Check existing tag is not added as new tag
+  });
+
+  it("Creates a new category without tags", async () => {
+    const newCatId = Object.keys(categories).length + 1;
+    const newCategory = {
+      parentId: 1,
+      tags: [],
+      name: "category" + newCatId
+    };
+
+    const response = await request
+      .post(`/api/v1/categories`)
+      .send(newCategory)
+      .expect(201);
+
+    expect(response.body.category).toMatchObject(newCategory);
+
+    const { rows, rowCount } = await client.query(
+      `
+        select count(tag_id)::int from category_tags
+        where category_id = $1
+      `,
+      [newCatId]
+    );
+    expect(rows[0].count).toBe(0);
+  });
+
+  it("Doesn't create category because name in use", async () => {
+    const newCategory = {
+      tags: [],
+      name: "category1"
     };
 
     const newCatId = Object.keys(categories).length + 1;
     const response = await request
       .post(`/api/v1/categories`)
-      .send(c4)
-      .expect(201);
-
-    // Check category added to table
-    const q1 = await client.query(
-      "SELECT * FROM categories WHERE category_id = $1",
-      [newCatId]
+      .send(newCategory)
+      .expect(400);
+    expect(response.body.error).not.toBeUndefined();
+    const { rows } = await client.query(
+      "select count(category_id)::int from categories"
     );
-    expect(q1.rows[0].name).toBe(c4.name);
-    expect(q1.rows[0].parent_id).toBe(c4.parentId);
-
-    // Check new tag added to table
-    const q2 = await client.query("SELECT * FROM tags WHERE tag = 'new tag'");
-    expect(q2.rowCount).toBe(1);
-    const newTagId = q2.rows[0].tag_id;
-
-    // Check existing tag not added to table
-    const q3 = await client.query("SELECT * FROM tags where tag = $1", [
-      tags[2].tag
-    ]);
-    expect(q3.rowCount).toBe(1);
-
-    // Check category tags added to table
-    const q4 = await client.query(
-      "SELECT * FROM category_tags WHERE category_id = $1",
-      [newCatId]
-    );
-    console.log(q4.rows);
-    expect(q4.rowCount).toBe(1);
-    q4.rows.forEach(row => expect(row.tag_id).toBe(newTagId));
+    expect(rows[0].count).toBe(Object.keys(categories).length);
   });
-  it("Doesn't create a new category", async () => {});
 });
 
 describe("GET /categories", () => {
@@ -124,6 +169,45 @@ describe("PATCH /categories/:categoryId", () => {
 });
 
 describe("DELETE /categories/:categoryId", () => {
-  it("Deletes a category", async () => {});
-  it("Doesn't delete a category", async () => {});
+  it("Deletes a category (and its children)", async () => {
+    const response = await request
+      .delete(`/api/v1/categories/3?withChildren=true`)
+      .send()
+      .expect(200);
+    expect(response.body.count).toBe(1);
+
+    const { rowCount } = await client.query(
+      "select * from categories where category_id = 3 OR category_id = 4"
+    );
+    expect(rowCount).toBe(0);
+  });
+
+  it("Unlinks and deletes a category (but not its children)", async () => {
+    const response = await request
+      .delete(`/api/v1/categories/3`)
+      .send()
+      .expect(200);
+    expect(response.body.count).toBe(1);
+    const { rowCount } = await client.query(
+      "select * from categories where category_id = 3"
+    );
+    expect(rowCount).toBe(0);
+    const { rows } = await client.query(
+      `
+        select category_id "categoryId", parent_id "parentId", name
+        from categories where category_id = 4
+      `
+    );
+    expect(rows.length).toBe(1);
+    expect({ ...categories[4], parentId: 1 }).toMatchObject(rows[0]);
+  });
+  it("Can't find a category to delete", async () => {
+    const response = await request
+      .delete(`/api/v1/categories/999`)
+      .send()
+      .expect(404);
+    expect(response.body.error).not.toBeUndefined();
+    const { rowCount } = await client.query("select * from categories");
+    expect(rowCount).toBe(Object.keys(categories).length);
+  });
 });

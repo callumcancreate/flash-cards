@@ -29,7 +29,7 @@ CREATE TABLE public.categories
 (
   "category_id"   SERIAL PRIMARY KEY NOT NULL,
   "name"          TEXT UNIQUE NOT NULL,
-  "parent_id"     INT REFERENCES categories
+  "parent_id"     INT REFERENCES categories ON DELETE CASCADE
 );
 
 

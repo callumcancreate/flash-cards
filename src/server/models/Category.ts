@@ -80,18 +80,26 @@ export default class Category extends Resource {
         
         select 
           ic.category_id,
-          (select array_agg(row_to_json(x)) from (select * from combined_tags order by "tagId") x)	tags
+          coalesce(
+            (
+              select array_agg(row_to_json(x)) 
+              from 
+                (select * from combined_tags order by "tagId") 
+            x), 
+            array[]::json[]
+          )	tags
         from insert_category ic
       `,
         [parentId, name, tags.map(v => v.tag)]
       );
-      console.log(rows);
       await client.query("COMMIT");
       this.tags = rows[0].tags;
       this.categoryId = rows[0].category_id;
       return rows[0];
     } catch (e) {
       await client.query("ROLLBACK");
+      if (e.constraint === "categories_name_key")
+        throw new NamedError("Client", "Category name must be unique");
       throw e;
     }
   }
@@ -111,7 +119,6 @@ export default class Category extends Resource {
         [name, categoryId]
       );
 
-      console.log("insert row count", categoryUpdateQuery.rowCount);
       if (!categoryUpdateQuery.rowCount)
         throw new Error("Something went wrong");
 
@@ -233,15 +240,46 @@ export default class Category extends Resource {
     return rows.map(c => new Category(c));
   }
 
-  async delete() {
+  static async unlinkAndDeleteById(id) {
+    const { rowCount } = await client.query(
+      `
+        with parents as (
+          select c.category_id, p.parent_id
+          from categories c left join categories p
+          on c.parent_id = p.category_id
+        ),
+        update_categories as (
+          update categories
+          set parent_id = p.parent_id
+          from parents p
+          where categories.category_id = p.category_id
+          and categories.parent_id = $1
+        )
+        delete from categories where category_id = $1
+      `,
+      [id]
+    );
+    return rowCount;
+  }
+
+  static async deleteById(id) {
     const { rowCount } = await client.query(
       `
         DELETE FROM categories
         WHERE category_id = $1
       `,
-      [this.categoryId]
+      [id]
     );
-    if (!rowCount) throw new NamedError("Server", "Something went wrong");
     return rowCount;
+  }
+
+  async unlink() {
+    const count = await Category.unlinkAndDeleteById(this.categoryId);
+    return count;
+  }
+
+  async delete() {
+    const count = await Category.deleteById(this.categoryId);
+    return count;
   }
 }

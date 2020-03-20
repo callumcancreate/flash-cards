@@ -18,5 +18,11 @@ export default {
     parentId: 1,
     tags: [tags[2]],
     name: "category3"
+  },
+  4: {
+    categoryId: 4,
+    parentId: 3,
+    tags: [],
+    name: "category4"
   }
 };
