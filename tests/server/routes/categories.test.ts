@@ -133,9 +133,12 @@ describe("GET /categories/:categoryId", () => {
     const c3 = categories[3];
     const c1 = categories[1];
 
+    console.log(r1);
+
     expect(r1.categoryId).toBe(c3.categoryId);
     expect(r1.name).toBe(c3.name);
     expect(r1.tags.length).toBe(3);
+    expect(r1.parentId).toBe(1);
     expect(r1.tags[0]).toMatchObject({ ...c1.tags[0], isInherited: true });
     expect(r1.tags[1]).toMatchObject({ ...c1.tags[1], isInherited: true });
     expect(r1.tags[2]).toMatchObject({ ...c3.tags[0], isInherited: false });
@@ -147,6 +150,7 @@ describe("GET /categories/:categoryId", () => {
     const r2 = response2.body.category;
     expect(r2.categoryId).toBe(c1.categoryId);
     expect(r2.name).toBe(c1.name);
+    expect(r2.parentId).toBe(null);
     expect(r2.tags.length).toBe(2);
     expect(r2.tags[0]).toMatchObject({ ...c1.tags[0], isInherited: false });
     expect(r2.tags[1]).toMatchObject({ ...c1.tags[1], isInherited: false });
@@ -164,8 +168,52 @@ describe("GET /categories/:categoryId", () => {
 // describe("GET /categories/:categoryId/cards", () => {});
 
 describe("PATCH /categories/:categoryId", () => {
-  it("Updates a category", async () => {});
-  it("Doesn't update a category", async () => {});
+  it("Updates a category", async () => {
+    const newTag = { tag: "4tag" };
+    const modifiedCat = {
+      ...categories[3],
+      name: "updated name",
+      parentId: 2,
+      tags: [tags[1], tags[2], newTag] // 1 not inherited, 2 inherited, 4 new, (3 dropped)
+    };
+    const newTagId = Object.keys(tags).length + 1;
+    const response = await request
+      .patch(`/api/v1/categories/3`)
+      .send(modifiedCat)
+      .expect(200);
+
+    expect(response.body.category).toMatchObject({
+      ...modifiedCat,
+      tags: [
+        { ...tags[1], isInherited: false },
+        { ...tags[2], isInherited: true },
+        { ...tags[3], isInherited: true },
+        { ...newTag, tagId: newTagId, isInherited: false }
+      ]
+    });
+
+    const { rows, rowCount } = await client.query(
+      `
+        select ct.category_id, ct.tag_id, t.tag 
+        from category_tags ct
+        left join tags t on ct.tag_id = t.tag_id
+        where category_id = 3
+        order by ct.category_id
+      `
+    );
+    expect(rowCount).toBe(2);
+    expect(rows[0]).toMatchObject({
+      category_id: 3,
+      tag_id: tags[1].tagId,
+      tag: tags[1].tag
+    });
+    expect(rows[1]).toMatchObject({
+      category_id: 3,
+      tag_id: newTagId,
+      tag: newTag.tag
+    });
+  });
+  it("Doesn't update a category due to missing ", async () => {});
 });
 
 describe("DELETE /categories/:categoryId", () => {

@@ -3,7 +3,9 @@ import { TagSchema } from "./Tag";
 import { limit, offset } from "./Find";
 
 const categoryId = Joi.number().label("Category ID");
-const parentId = Joi.number().label("Parent ID");
+const parentId = Joi.number()
+  .allow(null)
+  .label("Parent ID");
 const name = Joi.string().label("Name");
 const tags = Joi.array()
   .label("Tags")
@@ -15,6 +17,7 @@ export const CategoryFindOptions = Joi.object({
 });
 
 export const PatchCategorySchema = Joi.object({
+  parentId: parentId.optional(),
   name: name.optional(),
   tags: tags.optional()
 });

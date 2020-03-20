@@ -107,74 +107,90 @@ export default class Category extends Resource {
   async _put() {
     try {
       await client.query("BEGIN");
-      const { tags, name, categoryId } = this;
+      const { tags, name, categoryId, parentId } = this;
+      console.log("parentId", parentId);
 
-      // Update category name
-      const categoryUpdateQuery = await client.query(
+      const { rows, rowCount } = await client.query(
         `
-        UPDATE categories
-        SET name = $1
-        WHERE category_id = $2
-      `,
-        [name, categoryId]
-      );
-
-      if (!categoryUpdateQuery.rowCount)
-        throw new Error("Something went wrong");
-
-      // Insert or select tag depending on existence
-      // Insert or update category_tag depending on existence
-      const tagQueries = tags.map(async tag => {
-        const { rowCount } = await client.query(
-          `
-            WITH st AS (
-              SELECT tag_id FROM tags WHERE tag = $1
-            ), it AS (
-              INSERT INTO tags(tag)
-              SELECT $1
-              WHERE NOT EXISTS (SELECT 1 FROM st)
-              RETURNING tag_id
-            ), tid AS (
-              SELECT tag_id
-              FROM it UNION SELECT tag_id FROM st
-            ), sct AS (
-              SELECT ct.category_id, ct.tag_id FROM category_tags ct, tid
-              WHERE category_id = $2 AND ct.tag_id = tid.tag_id
-            ), ict AS (
-              INSERT INTO category_tags (category_id, tag_id)
-              SELECT $2, tid.tag_id
-              FROM tid
-              WHERE NOT EXISTS (SELECT 1 FROM sct)
-              RETURNING category_id, tag_id
-            )
-            SELECT * FROM sct UNION ALL SELECT * FROM ict
-          `,
-          [tag, categoryId]
-        );
-        if (!rowCount) throw new NamedError("Server", "Something went wrong");
-      });
-
-      // Delete tags no longer in array
-      await client.query(
-        `
-          WITH ts AS (
-            SELECT UNNEST ($1::text[]) AS tag
-          ), tids AS (
-            SELECT tag_id FROM ts JOIN tags ON tags.tag = ts.tag
+          with recursive parent_tags as (
+            select t.tag, ct.tag_id, c.parent_id, true "isInherited"
+            from category_tags ct 
+              inner join categories c on ct.category_id = c.category_id
+              inner join tags t on ct.tag_id = t.tag_id
+            where c.category_id = $1
+            union
+            select t.tag, ct.tag_id, c.parent_id, true "isInherited"
+            from parent_tags pt
+              inner join category_tags ct on pt.parent_id = ct.category_id
+              inner join tags t on t.tag_id = ct.tag_id
+              inner join categories c on c.category_id = ct.category_id
+          ),
+          category as (
+            update categories set parent_id = $1, name = $2
+            where category_id = $3
+            returning parent_id, name
+          ),
+          
+          child_tags as (
+            select u.tag, t.tag_id, false "isInherited" from
+            (select *  from unnest($4::text[]) tag) u 
+            left join tags t on t.tag = u.tag
+            left join parent_tags pt on pt.tag_id = t.tag_id
+            where pt.tag_id is null
+          ),
+          
+          insert_tags as (
+            insert into tags (tag)
+            select tag from child_tags ct
+            where ct.tag_id is null
+            returning tag, tag_id, false "isInherited"
+          ),
+          
+          combined_tags as (
+            select pt.tag, pt.tag_id "tagId", pt."isInherited" from parent_tags pt
+            union
+            select ct.tag, ct.tag_id "tagId", ct."isInherited" from child_tags ct where ct.tag_id is not null
+            union
+            select it.tag, it.tag_id "tagId", it."isInherited" from insert_tags it
+          ),
+          insert_category_tags as (
+            insert into category_tags (category_id, tag_id)
+            select $3, ct."tagId"
+            from combined_tags ct 
+            left join child_tags ch on ct.tag = ch.tag
+            where ch.tag is not null
+            
+          ),
+          delete_tags as (
+            delete from category_tags ct1
+            using category_tags ct2 
+            left join child_tags ch on ct2.tag_id = ch.tag_id
+            where ct1.category_id = $3
+            and ct1.category_id = ct2.category_id
+            and ch.tag_id is null
           )
-          DELETE FROM category_tags ct USING 
-            category_tags ct2
-            left join tids on tids.tag_id = ct2.tag_id 
-          WHERE 
-            tids.tag_id IS NULL
-            AND ct.tag_id = ct2.tag_id 
-            AND ct.category_id = $2
+          
+          select 
+            $3 "categoryId", 
+            c.name,
+            c.parent_id "parentId",
+            coalesce(
+              (
+                  select array_agg(row_to_json(x)) 
+                  from (select * from combined_tags order by "tagId") x
+                ),
+                array[]::json[]
+              )	tags
+          from category c
         `,
-        [tags, categoryId]
+        [parentId, name, categoryId, tags.map(t => t.tag)]
       );
-      await Promise.all(tagQueries);
-      await client.query("COMMIT");
 
+      if (!rowCount) throw new NamedError("Server", "Something went wrong");
+      await client.query("COMMIT");
+      for (let key in rows[0]) {
+        this[key] = rows[0][key];
+      }
       return this;
     } catch (e) {
       await client.query("ROLLBACK");
@@ -207,9 +223,7 @@ export default class Category extends Resource {
           select array_agg(row_to_json(x)) as tags
           from (select tag_id "tagId", tag, is_inherited "isInherited" from parent_tags order by tag_id) x
         )
-        
-        
-        select c.category_id "categoryId", c.name, jt.tags
+        select c.category_id "categoryId", c.name, coalesce(jt.tags, array[]::json[]) tags, c.parent_id "parentId"
         from categories c, json_tags jt
         where c.category_id = $1
         limit 1
