@@ -1,33 +1,21 @@
-import { Client } from "pg";
+import { Pool } from "pg";
 import chalk from "chalk";
 
-const connect = () => {
-  const client = new Client({
-    connectionString: process.env.DB_URI,
-    ssl: process.env.NODE_ENV === "development" ? false : true
-  });
+const pool = new Pool({
+  host: process.env.PGHOST,
+  port: Number(process.env.PGPORT),
+  user: process.env.PGUSER,
+  database:
+    process.env.NODE_ENV === "test"
+      ? process.env.TEST_DATABASE
+      : process.env.PGDATABASE,
+  password: process.env.PGPASSWORD,
+  ssl: process.env.NODE_ENV === "production" ? true : false
+});
 
-  client
-    .connect()
-    .then(() => {
-      console.log(
-        chalk.green(
-          `New connection to database hosted on ${client.host} port ${client.port}`
-        )
-      );
-    })
-    .catch(e => {
-      console.log(
-        chalk.red(
-          `Unable to make new connection to database hosted on ${client.host} port ${client.port}`
-        )
-      );
-      console.log(e);
-    });
+pool.on("error", (err, client) => {
+  console.error("Unexpected error on idle client", err); // your callback here
+  process.exit(-1);
+});
 
-  return client;
-};
-
-const client = connect();
-
-export default client;
+export default pool;

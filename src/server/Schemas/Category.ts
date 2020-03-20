@@ -3,6 +3,7 @@ import { TagSchema } from "./Tag";
 import { limit, offset } from "./Find";
 
 const categoryId = Joi.number().label("Category ID");
+const parentId = Joi.number().label("Parent ID");
 const name = Joi.string().label("Name");
 const tags = Joi.array()
   .label("Tags")
@@ -24,6 +25,7 @@ export const DeleteCardSchema = Joi.object({
 
 export const CategorySchema = Joi.object({
   categoryId: categoryId.optional(),
+  parentId: parentId.optional(),
   name,
   tags
 });

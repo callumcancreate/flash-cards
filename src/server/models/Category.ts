@@ -38,6 +38,21 @@ export default class Category extends Resource {
         tags.map(async ({ tag }) => {
           const { rows, rowCount } = await client.query(
             `
+              with recursive parent_tags as (
+                with base_tags as (
+                  select t.tag, ct.tag_id, c.parent_id, c.category_id 
+                  from category_tags ct
+                  inner join categories c on ct.category_id = c.category_id 
+                  inner join tags t on ct.tag_id = t.tag_id
+                )
+                select bt.tag, bt.tag_id, bt.parent_id, false as is_inherited
+                from base_tags bt
+                where bt.category_id = $1
+                union 
+                select bt.tag, bt.tag_id, bt.parent_id, true as is_inherited 
+                from parent_tags pt 
+                inner join base_tags bt on pt.parent_id = bt.category_id
+              )
               WITH st AS (
                 SELECT tag_id FROM tags WHERE tag = $1
               ), it AS (
