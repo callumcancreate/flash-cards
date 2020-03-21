@@ -4,7 +4,7 @@ import NamedError from "../models/NamedError";
 
 export const createCard = asyncCatchWrapper(async (req, res) => {
   const card = await new Card(req.body).save();
-  res.send({ card });
+  res.status(201).send({ card });
 });
 
 export const getCard = asyncCatchWrapper(async (req, res) => {

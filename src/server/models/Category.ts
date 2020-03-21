@@ -108,7 +108,6 @@ export default class Category extends Resource {
     try {
       await client.query("BEGIN");
       const { tags, name, categoryId, parentId } = this;
-      console.log("parentId", parentId);
 
       const { rows, rowCount } = await client.query(
         `
@@ -284,8 +283,6 @@ export default class Category extends Resource {
       `,
       [filter.root]
     );
-
-    console.log(rows);
 
     let map = {};
 
