@@ -61,7 +61,7 @@ export const seedData = async client => {
 
   // Add categories
   await Promise.all(
-    Object.values(categories).map(async cat => {
+    Object.values(categories).map(async (cat: any) => {
       await client.query(
         "INSERT INTO categories (name, parent_id) VALUES ($1, $2)",
         [cat.name, cat.parentId]

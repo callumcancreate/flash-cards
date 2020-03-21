@@ -118,9 +118,32 @@ describe("POST /categories", () => {
 });
 
 describe("GET /categories", () => {
-  it("Gets categories", async () => {});
-  it("Limits and skips categories", async () => {});
-  // it("Sorts categories", async () => {})
+  it("Gets categories", async () => {
+    const response = await request
+      .get(`/api/v1/categories`)
+      .send()
+      .expect(200);
+
+    const expected = [
+      {
+        ...categories[1],
+        children: [
+          {
+            ...categories[3],
+            children: [
+              {
+                ...categories[4],
+                children: []
+              }
+            ]
+          }
+        ]
+      },
+      { ...categories[2], children: [] }
+    ];
+
+    expect(response.body.categories).toMatchObject(expected);
+  });
 });
 
 describe("GET /categories/:categoryId", () => {
@@ -132,8 +155,6 @@ describe("GET /categories/:categoryId", () => {
     const r1 = response1.body.category;
     const c3 = categories[3];
     const c1 = categories[1];
-
-    console.log(r1);
 
     expect(r1.categoryId).toBe(c3.categoryId);
     expect(r1.name).toBe(c3.name);

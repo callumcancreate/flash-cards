@@ -239,19 +239,76 @@ export default class Category extends Resource {
     return new Category(category);
   }
 
-  static async find(filter, options?) {
-    const { rows } = await client.query(
+  static async find(filter) {
+    let { rows } = await client.query(
       `
-        with tag_arrays as (
-          select ct.category_id, array_agg(t.tag) as tags
-          from category_tags ct inner join tags t on ct.tag_id = t.tag_id
-          group by ct.category_id 
+        with recursive category_crumbs as (
+          select c.category_id, c.parent_id, array[c.category_id] crumbs
+          from categories c
+          where 
+          c.category_id = $1
+          or (
+            select nullif($1::text, '(none)') is null 
+            and c.parent_id is null
+          )
+          union 
+          select c.category_id, c.parent_id, array_append(cc.crumbs, c.category_id) crumbs 
+          from categories c, category_crumbs cc
+          where cc.category_id = c.parent_id
+        
+        ),
+        json_tags as (
+          select x."tagId", row_to_json(x) tags
+          from (
+            select t.tag_id "tagId", t.tag
+            from tags t 
+            order by "tagId"
+          ) x
+        
+        ),
+        array_tags as (
+          select ct.category_id, array_agg(jt.tags) tags
+          from category_tags ct 
+          inner join json_tags jt on ct.tag_id = jt."tagId"
+          group by ct.category_id
         )
-        select c.category_id "categoryId", c.name, ta.tags
-        from tag_arrays ta inner join categories c on ta.category_id = c.category_id
-      `
+        select 
+          c.category_id "categoryId", 
+          c.parent_id "parentId",  
+          c.name, 
+          cc.crumbs, 
+          coalesce(at.tags, array[]::json[]) tags
+        from category_crumbs cc 
+        inner join categories c on cc.category_id = c.category_id
+        left join array_tags at on c.category_id = at.category_id
+      `,
+      [filter.root]
     );
-    return rows.map(c => new Category(c));
+
+    console.log(rows);
+
+    let map = {};
+
+    rows.forEach(cat =>
+      cat.crumbs.reduce((acc, crumb) => {
+        crumb == cat.categoryId
+          ? (acc[crumb] = { ...cat, crumbs: undefined })
+          : (acc[crumb] = acc[crumb] || {});
+        acc[crumb].children = { ...acc[crumb].children };
+        return acc[crumb].children;
+      }, map)
+    );
+
+    const toArrayStructure = map => {
+      const values: CategoryType[] = Object.values(map);
+      return values.length
+        ? values.map(
+            v => new Category({ ...v, children: toArrayStructure(v.children) })
+          )
+        : [];
+    };
+
+    return toArrayStructure(map);
   }
 
   static async unlinkAndDeleteById(id) {

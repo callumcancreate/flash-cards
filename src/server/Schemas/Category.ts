@@ -11,6 +11,10 @@ const tags = Joi.array()
   .label("Tags")
   .items(TagSchema);
 
+const children = Joi.array()
+  .label("Children")
+  .items(Joi.object());
+
 export const CategoryFindOptions = Joi.object({
   limit,
   offset
@@ -29,6 +33,7 @@ export const DeleteCardSchema = Joi.object({
 export const CategorySchema = Joi.object({
   categoryId: categoryId.optional(),
   parentId: parentId.optional(),
+  children: children.optional(),
   name,
   tags
 });

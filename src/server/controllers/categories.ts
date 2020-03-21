@@ -15,7 +15,7 @@ export const getCategory = asyncCatchWrapper(async (req, res) => {
 });
 
 export const getCategories = asyncCatchWrapper(async (req, res) => {
-  const categories = await Category.find(req.params, req.query);
+  const categories = await Category.find({});
   res.send({ categories });
 });
 
