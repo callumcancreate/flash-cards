@@ -1,11 +1,18 @@
-import client from "../db";
-import Resource from "./Resource";
-import CardType from "../../types/Card";
-import TagType from "../../types/Tag";
-import { CardSchema, CardFindFilter, CardFindOptions } from "../Schemas/Card";
-import NamedError from "./NamedError";
-import { validateSchema, camelToSnake } from "../../utils";
-import Tag from "./Tag";
+import fs from "fs";
+import path from "path";
+import client from "../../db";
+import Resource from "../Resource";
+import CardType from "../../../types/Card";
+import TagType from "../../../types/Tag";
+import {
+  CardSchema,
+  CardFindFilter,
+  CardFindOptions
+} from "../../Schemas/Card";
+import NamedError from "../NamedError";
+import { validateSchema, camelToSnake } from "../../../utils";
+
+const insertSql = fs.readFileSync(path.join(__dirname, "insert.sql"), "utf8S");
 
 export default class Card extends Resource {
   cardId?: number;
@@ -23,44 +30,12 @@ export default class Card extends Resource {
     try {
       const { tags, front, back, hint } = this;
       await client.query("BEGIN");
-      const { rows } = await client.query(
-        `
-          with insert_card as (
-            insert into cards (front, back, hint) values ($1, $2, $3)
-            returning card_id, front, back, hint
-          ),
-          input_tags as (
-            select u.tag, t.tag_id from 
-            (select unnest($4::text[]) tag) u 
-            left join tags t on t.tag = u.tag
-          ),
-          insert_tags as (
-            insert into tags (tag)
-            select it.tag from input_tags it
-            where it.tag_id is null
-            returning tag, tag_id
-          ),
-          combined_tags as (
-            select inp.tag, inp.tag_id from input_tags inp where inp.tag_id is not null
-            union
-            select ins.tag, ins.tag_id from insert_tags ins
-          ),
-          insert_card_tags as (
-            insert into card_tags (card_id, tag_id)
-            select ic.card_id, ct.tag_id
-            from insert_card ic, combined_tags ct
-          )
-          select 
-            ic.card_id "cardId", 
-            coalesce(
-              (select array_agg(row_to_json(x)) 
-              from (select ct.tag, ct.tag_id "tagId" from combined_tags ct order by tag_id) x),
-              array[]::json[]
-            ) tags
-          from insert_card ic
-        `,
-        [front, back, hint, tags.map(t => t.tag)]
-      );
+      const { rows } = await client.query(insertSql, [
+        front,
+        back,
+        hint,
+        tags.map(t => t.tag)
+      ]);
       await client.query("COMMIT");
       this.cardId = rows[0].cardId;
       this.tags = rows[0].tags;
