@@ -154,16 +154,18 @@ describe("GET /categories/:categoryId", () => {
       .send()
       .expect(200);
     const r1 = response1.body.category;
-    const c3 = categories[3];
     const c1 = categories[1];
+    const c3 = categories[3];
 
     expect(r1.categoryId).toBe(c3.categoryId);
     expect(r1.name).toBe(c3.name);
     expect(r1.tags.length).toBe(3);
     expect(r1.parentId).toBe(1);
-    expect(r1.tags[0]).toMatchObject({ ...c1.tags[0], isInherited: true });
-    expect(r1.tags[1]).toMatchObject({ ...c1.tags[1], isInherited: true });
-    expect(r1.tags[2]).toMatchObject({ ...c3.tags[0], isInherited: false });
+    expect(r1.tags).toMatchObject([
+      { ...c1.tags[0], isInherited: true },
+      { ...c1.tags[1], isInherited: true },
+      { ...c3.tags[0], isInherited: false }
+    ]);
 
     const response2 = await request
       .get(`/api/v1/categories/1`)
@@ -194,7 +196,28 @@ describe("GET /categories/:categoryId", () => {
   });
 });
 
-// describe("GET /categories/:categoryId/cards", () => {});
+describe("GET /categories/:categoryId/cards", () => {
+  it("Gets cards of a category", async () => {
+    const r1 = await request
+      .get(`/api/v1/categories/3/cards`)
+      .send()
+      .expect(200);
+
+    expect(r1.body.cards).toMatchObject([cards[1], cards[2]]);
+
+    const r2 = await request
+      .get(`/api/v1/categories/1/cards`)
+      .send()
+      .expect(200);
+
+    expect(r2.body.cards).toMatchObject([
+      cards[1],
+      cards[2],
+      cards[3],
+      cards[4]
+    ]);
+  });
+});
 
 describe("PATCH /categories/:categoryId", () => {
   it("Updates a category", async () => {

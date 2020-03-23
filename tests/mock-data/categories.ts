@@ -1,20 +1,19 @@
-import _tags from "./tags";
-const tags = Object.values(_tags);
+import tags from "./tags";
 export default {
   1: {
     categoryId: 1,
-    tags: tags.slice(0, 2),
+    tags: [tags[1], tags[2]],
     name: "category1"
   },
   2: {
     categoryId: 2,
-    tags: tags.slice(1),
+    tags: [tags[2], tags[3]],
     name: "category2"
   },
   3: {
     categoryId: 3,
     parentId: 1,
-    tags: [tags[2]],
+    tags: [tags[3]],
     name: "category3"
   },
   4: {

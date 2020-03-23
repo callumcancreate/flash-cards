@@ -21,7 +21,7 @@ export const getCategories = asyncCatchWrapper(async (req, res) => {
 
 export const getCategoryCards = asyncCatchWrapper(async (req, res, next) => {
   const category = await Category.findById(req.params.categoryId);
-  req.query.tagsAll = category.tags;
+  req.query.tagsAll = category.tags.map(({ tag }) => tag);
   next();
 });
 
