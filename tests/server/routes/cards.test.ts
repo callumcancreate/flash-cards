@@ -144,6 +144,16 @@ describe("GET /cards", () => {
 
     expect(r3.body.cards).toMatchObject([cards[1]]);
   });
+
+  it("Limit and skip cards", async () => {
+    const r1 = await request
+      .get(`/api/v1/cards`)
+      .query({ limit: 1, offset: 1 })
+      .send()
+      .expect(200);
+
+    expect(r1.body.cards).toMatchObject([cards[2]]);
+  });
 });
 
 describe("PATCH /cards/:id", () => {
