@@ -98,22 +98,40 @@ describe("POST /categories", () => {
     expect(rows[0].count).toBe(0);
   });
 
-  it("Doesn't create category because name in use", async () => {
-    const newCategory = {
-      tags: [],
-      name: "category1"
-    };
-
-    const newCatId = Object.keys(categories).length + 1;
-    const response = await request
+  it("Doesn't create category because name and parent id not unique", async () => {
+    const r1 = await request
       .post(`/api/v1/categories`)
-      .send(newCategory)
+      .send({ name: "category1", tags: [] })
       .expect(400);
-    expect(response.body.error).not.toBeUndefined();
+    expect(r1.body.error).not.toBeUndefined();
+
+    const r2 = await request
+      .post(`/api/v1/categories`)
+      .send({ name: "category3", parentId: 1, tags: [] })
+      .expect(400);
+    expect(r2.body.error).not.toBeUndefined();
+
     const { rows } = await client.query(
       "select count(category_id)::int from categories"
     );
     expect(rows[0].count).toBe(Object.keys(categories).length);
+  });
+
+  it("Creates a category with existing name but different parent", async () => {
+    const newId = Object.keys(categories).length + 1;
+    const r1 = await request
+      .post(`/api/v1/categories`)
+      .send({ name: "category3", tags: [] })
+      .expect(201);
+
+    const {
+      rows
+    } = await client.query(
+      "select parent_id, name from categories where category_id = $1",
+      [newId]
+    );
+    expect(rows[0].name).toBe("category3");
+    expect(rows[0].parent_id).toBe(null);
   });
 });
 

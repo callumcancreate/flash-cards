@@ -48,7 +48,11 @@ export default class Category extends Resource {
       return rows[0];
     } catch (e) {
       await client.query("ROLLBACK");
-      if (e.constraint === "categories_name_key")
+      if (
+        e.constraint === "unique_name" ||
+        e.constraint === "unique_name_null_parent"
+      )
+        //categories_name_key
         throw new NamedError("Client", "Category name must be unique");
       throw e;
     }
@@ -73,6 +77,12 @@ export default class Category extends Resource {
       return this;
     } catch (e) {
       await client.query("ROLLBACK");
+      if (
+        e.constraint === "unique_name" ||
+        e.constraint === "unique_name_null_parent"
+      )
+        //categories_name_key
+        throw new NamedError("Client", "Category name must be unique");
       console.log(e);
       throw e;
     }
