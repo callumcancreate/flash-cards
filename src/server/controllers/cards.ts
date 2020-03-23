@@ -32,12 +32,11 @@ export const updateCard = asyncCatchWrapper(async (req, res) => {
 });
 
 export const deleteCard = asyncCatchWrapper(async (req, res) => {
-  const card = await Card.findById(req.params.cardId);
-  if (!card)
+  const count = await Card.deleteById(req.params.cardId);
+  if (!count)
     throw new NamedError(
       "NotFound",
       `Unable to find card with id ${req.params.cardId}`
     );
-  const count = await card.delete();
   return res.send({ count });
 });

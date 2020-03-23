@@ -69,7 +69,22 @@ describe("POST /cards", () => {
 });
 
 describe("GET /cards/:id", () => {
-  it("Gets a card by id", async () => {});
+  it("Gets a card by id", async () => {
+    const r1 = await request
+      .get(`/api/v1/cards/1`)
+      .send()
+      .expect(200);
+
+    expect(r1.body.card).toMatchObject(cards[1]);
+
+    // Gets a card with no tags
+    const r2 = await request
+      .get(`/api/v1/cards/7`)
+      .send()
+      .expect(200);
+
+    expect(r2.body.card).toMatchObject(cards[7]);
+  });
 });
 
 describe("GET /cards", () => {
@@ -120,5 +135,16 @@ describe("PATCH /cards/:id", () => {
 });
 
 describe("DELETE /cards/:id", () => {
-  it("Deletes a card by id", async () => {});
+  it("Deletes a card by id", async () => {
+    await request
+      .delete(`/api/v1/cards/1`)
+      .send()
+      .expect(200);
+
+    const q1 = await client.query("select * from cards where card_id = 1");
+    expect(q1.rowCount).toBe(0);
+
+    const q2 = await client.query("select * from card_tags where card_id = 1");
+    expect(q2.rowCount).toBe(0);
+  });
 });

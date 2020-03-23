@@ -14,6 +14,10 @@ import { validateSchema, camelToSnake } from "../../../utils";
 
 const insertSql = fs.readFileSync(path.join(__dirname, "insert.sql"), "utf8");
 const updateSql = fs.readFileSync(path.join(__dirname, "update.sql"), "utf8");
+const findByIdSql = fs.readFileSync(
+  path.join(__dirname, "findById.sql"),
+  "utf8"
+);
 
 export default class Card extends Resource {
   cardId?: number;
@@ -73,24 +77,7 @@ export default class Card extends Resource {
 
   static async findById(id) {
     id = parseInt(id);
-    const cards = await client.query(
-      `
-        with json_tags as (
-          select x."tagId",	row_to_json(x)as tag
-          from (select tag_id "tagId", tag from tags) x
-        ), 
-        tag_arrays as (
-          select ct.card_id, array_agg(jt.tag) as tags
-            from card_tags ct inner join json_tags jt on ct.tag_id = jt."tagId"
-            group by ct.card_id 
-        )
-        select c.card_id "cardId", c.front, c.back, c.hint, COALESCE(ta.tags, ARRAY[]::json[]) tags
-        from cards c left join tag_arrays ta on ta.card_id = c.card_id
-        where c.card_id = $1
-        limit 1
-      `,
-      [id]
-    );
+    const cards = await client.query(findByIdSql, [id]);
     const card = cards.rows[0];
     if (!card)
       throw new NamedError("NotFound", `Unable to find card with id of ${id}`);
@@ -179,16 +166,18 @@ export default class Card extends Resource {
     );
     return rows.map(c => new Card(c));
   }
-
-  async delete() {
+  static async deleteById(id) {
     const { rowCount } = await client.query(
       `
         DELETE FROM cards
         WHERE card_id = $1
       `,
-      [this.cardId]
+      [id]
     );
-    if (!rowCount) throw new NamedError("Server", "Something went wrong");
     return rowCount;
+  }
+
+  async delete() {
+    return await Card.deleteById(this.cardId);
   }
 }

@@ -139,7 +139,8 @@ describe("GET /categories", () => {
           }
         ]
       },
-      { ...categories[2], children: [] }
+      { ...categories[2], children: [] },
+      { ...categories[5], children: [] }
     ];
 
     expect(response.body.categories).toMatchObject(expected);
@@ -175,6 +176,13 @@ describe("GET /categories/:categoryId", () => {
     expect(r2.tags.length).toBe(2);
     expect(r2.tags[0]).toMatchObject({ ...c1.tags[0], isInherited: false });
     expect(r2.tags[1]).toMatchObject({ ...c1.tags[1], isInherited: false });
+
+    // Get a category with no tags
+    const response3 = await request
+      .get(`/api/v1/categories/5`)
+      .send()
+      .expect(200);
+    expect(response3.body.category).toMatchObject(categories[5]);
   });
 
   it("Can't find a category", async () => {
