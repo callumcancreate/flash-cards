@@ -88,7 +88,62 @@ describe("GET /cards/:id", () => {
 });
 
 describe("GET /cards", () => {
-  it("Gets cards", async () => {});
+  it("Gets all cards", async () => {
+    const r1 = await request
+      .get(`/api/v1/cards`)
+      .query({})
+      .send()
+      .expect(200);
+    expect(r1.body.cards).toMatchObject(Object.values(cards));
+  });
+
+  it("Gets cards from tags", async () => {
+    const includedTags = [tags[1], tags[2]];
+    const excludedTags = [tags[3]];
+    const expectedCards = Object.values(cards).filter(
+      card =>
+        card.tags.find(({ tag }) => tag === tags[1].tag) &&
+        card.tags.find(({ tag }) => tag === tags[2].tag) &&
+        !card.tags.find(({ tag }) => tag === tags[3].tag)
+    );
+    // expect(expectedCards).toBe(1);
+    const r1 = await request
+      .get(`/api/v1/cards`)
+      .query({
+        tagsAll: includedTags.map(({ tag }) => tag), // get cards with tag 1 and 2
+        tagsNone: excludedTags.map(({ tag }) => tag)
+      })
+      .send()
+      .expect(200);
+
+    console.log(r1);
+    expect(r1.body.cards).toMatchObject(Object.values(expectedCards));
+  });
+  it("Filters cards by values", async () => {
+    const r1 = await request
+      .get(`/api/v1/cards`)
+      .query({ front: "samefront" })
+      .send()
+      .expect(200);
+
+    expect(r1.body.cards).toMatchObject([cards[6], cards[7]]);
+
+    const r2 = await request
+      .get(`/api/v1/cards`)
+      .query({ back: "back1" })
+      .send()
+      .expect(200);
+
+    expect(r2.body.cards).toMatchObject([cards[1]]);
+
+    const r3 = await request
+      .get(`/api/v1/cards`)
+      .query({ cardId: 1 })
+      .send()
+      .expect(200);
+
+    expect(r3.body.cards).toMatchObject([cards[1]]);
+  });
 });
 
 describe("PATCH /cards/:id", () => {

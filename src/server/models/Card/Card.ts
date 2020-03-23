@@ -14,6 +14,7 @@ import { validateSchema, camelToSnake } from "../../../utils";
 
 const insertSql = fs.readFileSync(path.join(__dirname, "insert.sql"), "utf8");
 const updateSql = fs.readFileSync(path.join(__dirname, "update.sql"), "utf8");
+const findSql = fs.readFileSync(path.join(__dirname, "find.sql"), "utf8");
 const findByIdSql = fs.readFileSync(
   path.join(__dirname, "findById.sql"),
   "utf8"
@@ -84,8 +85,16 @@ export default class Card extends Resource {
     return new Card(card);
   }
 
-  static async find(filter, options?) {
-    filter = validateSchema(filter, CardFindFilter, { presence: "optional" });
+  static async find(config) {
+    const { tagsAll, tagsNone } = config;
+    if (typeof tagsAll === "string") config.tagsAll = [config.tagsAll];
+    if (typeof tagsNone === "string") config.tagsNone = [config.tagsNone];
+    const filter = validateSchema(config, CardFindFilter, {
+      presence: "optional"
+    });
+    const options = validateSchema(config, CardFindOptions, {
+      presence: "optional"
+    });
 
     if (filter.errors)
       throw new NamedError(
@@ -94,10 +103,6 @@ export default class Card extends Resource {
         filter.errors
       );
 
-    options = validateSchema(options || {}, CardFindOptions, {
-      presence: "optional"
-    });
-
     if (options.errors)
       throw new NamedError(
         "Client",
@@ -105,75 +110,22 @@ export default class Card extends Resource {
         options.errors
       );
 
-    const conditions = Object.keys(filter.value).length
-      ? "WHERE " +
-        Object.keys(filter.value)
-          .map((key, i) => `c.${camelToSnake(key)} = $${i + 5}`)
-          .join(" AND ")
-      : "";
-
-    const { rows } = await client.query(
-      `
-        with json_tags as (
-          select x."tagId",	row_to_json(x)as tag
-          from (select tag_id "tagId", tag from tags) x
-        ),   
-        required_tags as (
-          select tags.tag_id
-          from (select unnest($1::text[]) as tag) as t(tag) 
-          inner join tags on tags.tag = t.tag
-        ),
-        excluded_tags as (
-          select tags.tag_id 
-          from (select unnest($2::text[]) as tag) as t(tag) 
-          inner join tags on tags.tag = t.tag
-        ),
-        filtered_cards as (
-          select 
-            ct.card_id,
-            array_agg(jt.tag) as tags
-          from 
-            card_tags ct
-            join json_tags jt on ct.tag_id = jt."tagId"
-            left join excluded_tags et on ct.tag_id = et.tag_id
-            left join required_tags rt on ct.tag_id = rt.tag_id
-          group by ct.card_id 
-          having
-            count(et.tag_id) = 0
-            and count(rt.tag_id) = cardinality($1)
-        )
-        select 
-        c.card_id "cardId", 
-          c.front, 
-          c.back, 
-          c.hint, 
-           fc.tags
-          from 
-        filtered_cards fc
-          inner join cards c on fc.card_id = c.card_id
-        ${conditions}
-        order by c.card_id
-        limit $3
-        offset $4
-      `,
-      [
-        options.value.tagsAll || [],
-        options.value.tagsNone || [],
-        options.value.limit,
-        options.value.offset,
-        ...Object.values(filter.value)
-      ]
-    );
+    const { rows } = await client.query(findSql, [
+      options.value.tagsAll || [],
+      options.value.tagsNone || [],
+      filter.value.cardId,
+      filter.value.front,
+      filter.value.back,
+      filter.value.hint,
+      options.value.limit,
+      options.value.offset
+    ]);
     return rows.map(c => new Card(c));
   }
   static async deleteById(id) {
-    const { rowCount } = await client.query(
-      `
-        DELETE FROM cards
-        WHERE card_id = $1
-      `,
-      [id]
-    );
+    const {
+      rowCount
+    } = await client.query(`DELETE FROM cards WHERE card_id = $1`, [id]);
     return rowCount;
   }
 

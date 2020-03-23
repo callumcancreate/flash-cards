@@ -13,7 +13,7 @@ export const getCard = asyncCatchWrapper(async (req, res) => {
 });
 
 export const getCards = asyncCatchWrapper(async (req, res) => {
-  const cards = await Card.find({}, req.query);
+  const cards = await Card.find(req.query);
   return res.send({ cards });
 });
 

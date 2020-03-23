@@ -38,14 +38,14 @@ export default {
   },
   6: {
     cardId: 6,
-    front: "front6",
+    front: "samefront",
     back: "back6",
     hint: "hint6",
     tags: [tags[2]]
   },
   7: {
     cardId: 7,
-    front: "front7",
+    front: "samefront",
     back: "back7",
     hint: "hint7",
     tags: []

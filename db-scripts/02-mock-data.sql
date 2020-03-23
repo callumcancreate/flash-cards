@@ -4,7 +4,8 @@ INSERT INTO cards (front, back, hint) VALUES
 ('3.front', '3.back', '3.hint'),
 ('4.front', '4.back', '4.hint'),
 ('5.front', '5.back', '5.hint'),
-('6.front', '6.back', '6.hint');
+('6.front', '6.back', '6.hint'),
+('7.front', '7.back', '7.hint');
 
 INSERT INTO tags (tag) VALUES
 ('1.tag'),
