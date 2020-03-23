@@ -77,7 +77,46 @@ describe("GET /cards", () => {
 });
 
 describe("PATCH /cards/:id", () => {
-  it("Updates a card by id", async () => {});
+  it("Updates a card by id", async () => {
+    const newTag = { tag: "new tag" };
+    const newTagId = Object.keys(tags).length + 1;
+    const updatedCard = {
+      cardId: 3,
+      front: "new front",
+      back: "new back",
+      hint: "new hint",
+      tags: [tags[1], tags[3], newTag] // dropped tag 2, added tag 3 and new tag
+    };
+
+    const response = await request
+      .patch(`/api/v1/cards/3`)
+      .send(updatedCard)
+      .expect(200);
+
+    expect(response.body.card).toMatchObject(updatedCard);
+    expect(response.body.card.tags[2]).toMatchObject({
+      ...newTag,
+      tagId: newTagId
+    });
+
+    const cardQuery = await client.query(
+      `select card_id "cardId", front, back, hint from cards c where card_id = 3`
+    );
+    expect(cardQuery.rowCount).toBe(1);
+    expect(updatedCard).toMatchObject(cardQuery.rows[0]);
+
+    const ctQuery = await client.query(
+      `
+        select ct.tag_id "tagId", t.tag 
+        from card_tags ct inner join tags t on ct.tag_id = t.tag_id
+        where ct.card_id = 3
+      `
+    );
+    expect(ctQuery.rowCount).toBe(3);
+    expect(ctQuery.rows[0]).toMatchObject(tags[1]);
+    expect(ctQuery.rows[1]).toMatchObject(tags[3]);
+    expect(ctQuery.rows[2]).toMatchObject({ ...newTag, tagId: newTagId });
+  });
 });
 
 describe("DELETE /cards/:id", () => {

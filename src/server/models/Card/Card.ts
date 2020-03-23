@@ -12,7 +12,8 @@ import {
 import NamedError from "../NamedError";
 import { validateSchema, camelToSnake } from "../../../utils";
 
-const insertSql = fs.readFileSync(path.join(__dirname, "insert.sql"), "utf8S");
+const insertSql = fs.readFileSync(path.join(__dirname, "insert.sql"), "utf8");
+const updateSql = fs.readFileSync(path.join(__dirname, "update.sql"), "utf8");
 
 export default class Card extends Resource {
   cardId?: number;
@@ -51,68 +52,16 @@ export default class Card extends Resource {
     try {
       await client.query("BEGIN");
       const { tags, front, back, hint, cardId } = this;
-      const cardUpdateQuery = await client.query(
-        `
-        UPDATE cards
-        SET
-          front = $1,
-          back = $2,
-          hint = $3
-        WHERE card_id = $4
-      `,
-        [front, back, hint, cardId]
-      );
-      if (!cardUpdateQuery.rowCount) throw new Error("Something went wrong");
-
-      const tagQueries = tags.map(async ({ tag }) => {
-        const { rowCount } = await client.query(
-          `
-            WITH st AS (
-              SELECT tag_id FROM tags WHERE tag = $1
-            ), it AS (
-              INSERT INTO tags(tag)
-              SELECT $1
-              WHERE NOT EXISTS (SELECT 1 FROM st)
-              RETURNING tag_id
-            ), tid AS (
-              SELECT tag_id
-              FROM it UNION SELECT tag_id FROM st
-            ), sct AS (
-              SELECT ct.card_id, ct.tag_id FROM card_tags ct, tid
-              WHERE card_id = $2 AND ct.tag_id = tid.tag_id
-            ), ict AS (
-              INSERT INTO card_tags (card_id, tag_id)
-              SELECT $2, tid.tag_id
-              FROM tid
-              WHERE NOT EXISTS (SELECT 1 FROM sct)
-              RETURNING card_id, tag_id
-            )
-            SELECT * FROM sct UNION ALL SELECT * FROM ict
-          `,
-          [tag, cardId]
-        );
-        if (!rowCount) throw new NamedError("Server", "Something went wrong");
-      });
-      await client.query(
-        `
-        WITH ts AS (
-          SELECT UNNEST ($1::text[]) AS tag
-        ), tids AS (
-        SELECT tag_id FROM ts JOIN tags ON tags.tag = ts.tag
-        )
-        DELETE FROM card_tags ct USING 
-          card_tags ct2
-          left join tids on tids.tag_id = ct2.tag_id 
-        WHERE 
-          tids.tag_id IS NULL
-          AND ct.tag_id = ct2.tag_id
-          AND ct.card_id = $2
-
-        `,
-        [tags.map(t => t.tag), cardId]
-      );
-      await Promise.all(tagQueries);
+      const { rows, rowCount } = await client.query(updateSql, [
+        front,
+        back,
+        hint,
+        cardId,
+        tags.map(t => t.tag)
+      ]);
+      if (!rowCount) throw new NamedError("Server", "Something went wrong");
       await client.query("COMMIT");
+      this.tags = rows[0].tags;
 
       return this;
     } catch (e) {
