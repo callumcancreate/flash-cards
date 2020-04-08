@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/server.bundle.js",
+    "start": "node -r dotenv/config dist/server.js",
     "build": "webpack --env.production",
     "dev": "webpack --env.development --watch",
     "test": "jest --detectOpenHandles --silent --verbose"
