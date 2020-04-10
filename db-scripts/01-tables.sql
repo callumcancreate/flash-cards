@@ -1,6 +1,13 @@
-DROP SCHEMA public CASCADE;
+-- DROP SCHEMA public CASCADE;
+-- CREATE SCHEMA public;
 
-CREATE SCHEMA public;
+CREATE TABLE public.users (
+  "user_id" serial PRIMARY KEY,
+  "email" text NOT NULL,
+  "first_name" text NOT NULL,
+  "last_name" text NOT NULL,
+  "is_deleted" boolean DEFAULT FALSE
+);
 
 CREATE TABLE public.tags (
   "tag_id" serial PRIMARY KEY,

@@ -16,8 +16,9 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await db.initTables(client);
-  await db.seedData(client);
-  // seed data
+  await db.seedTags(client);
+  await db.seedCategories(client);
+  await db.seedCards(client);
 });
 
 afterAll(async () => await client.release());

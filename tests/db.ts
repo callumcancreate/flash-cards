@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import pool from "../src/server/db";
-import { categories, cards, tags } from "./mock-data";
+import { categories, cards, tags, users } from "./mock-data";
 
 // Verify using test database
 export const connect = async () => {
@@ -22,6 +22,8 @@ export const connect = async () => {
 
 // Init tables based on db-scripts
 export const initTables = async client => {
+  await client.query("DROP SCHEMA public CASCADE");
+  await client.query("CREATE SCHEMA public");
   const tableScripts = fs
     .readFileSync(
       path.resolve(__dirname, "../db-scripts/01-tables.sql"),
@@ -32,15 +34,15 @@ export const initTables = async client => {
   await Promise.all(tableScripts.map(async sql => await client.query(sql)));
 };
 
-export const seedData = async client => {
-  // Add tags
+export const seedTags = async client =>
   await Promise.all(
     Object.values(tags).map(
       async ({ tag }) =>
         await client.query("INSERT INTO tags (tag) VALUES ($1)", [tag])
     )
   );
-  // Add cards
+
+export const seedCards = async client =>
   await Promise.all(
     Object.values(cards).map(async card => {
       await client.query(
@@ -59,7 +61,7 @@ export const seedData = async client => {
     })
   );
 
-  // Add categories
+export const seedCategories = async client =>
   await Promise.all(
     Object.values(categories).map(async (cat: any) => {
       await client.query(
@@ -77,4 +79,20 @@ export const seedData = async client => {
       );
     })
   );
+
+export const seedUsers = async client =>
+  await Promise.all(
+    Object.values(users).map(
+      async u =>
+        await client.query(
+          "INSERT INTO users (first_name, last_name, email, is_deleted) VALUES ($1, $2, $3, $4)",
+          [u.firstName, u.lastName, u.email, u.isDeleted]
+        )
+    )
+  );
+
+export const seedData = async client => {
+  await seedTags(client);
+  await seedCards(client);
+  await seedCategories(client);
 };

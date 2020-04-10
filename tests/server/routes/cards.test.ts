@@ -1,7 +1,7 @@
 import server from "../../../src/server/server";
 import supertest from "supertest";
 import * as db from "../../db";
-import { cards, tags, categories } from "../../mock-data";
+import { cards, tags } from "../../mock-data";
 
 const request = supertest(server);
 let client;
@@ -16,8 +16,8 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await db.initTables(client);
-  await db.seedData(client);
-  // seed data
+  await db.seedTags(client);
+  await db.seedCards(client);
 });
 
 afterAll(async () => await client.release());
