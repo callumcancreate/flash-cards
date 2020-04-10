@@ -1,3 +1,4 @@
+export default `
 WITH parents AS (
   SELECT
     c.category_id,
@@ -18,3 +19,4 @@ update_categories AS (
     AND categories.parent_id = $1)
 DELETE FROM categories
 WHERE category_id = $1
+`;

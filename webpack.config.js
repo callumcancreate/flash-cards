@@ -67,7 +67,7 @@ const makeConfig = (name) => (env) => {
         },
         {
           test: /\.sql$/i,
-          use: "raw-loader",
+          use: "file-loader",
           exclude: /node_modules/,
         },
         {

@@ -1,3 +1,4 @@
+export default `
 WITH RECURSIVE parent_tags AS (
   SELECT
     t.tag,
@@ -115,3 +116,4 @@ SELECT
           "tagId") x), ARRAY[]::json[]) tags
 FROM
   category c
+`;

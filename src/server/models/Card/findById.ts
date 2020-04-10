@@ -1,3 +1,4 @@
+export default `
 WITH json_tags AS (
   SELECT
     x. "tagId",
@@ -31,3 +32,4 @@ FROM
 WHERE
   c.card_id = $1
 LIMIT 1
+`;

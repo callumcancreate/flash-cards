@@ -1,3 +1,4 @@
+export default `
 WITH json_tags AS (
   SELECT
     x. "tagId",
@@ -57,3 +58,4 @@ HAVING
 ORDER BY
   c.card_id
 LIMIT $7 OFFSET $8
+`;
