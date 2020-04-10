@@ -7,7 +7,8 @@
     "start": "node -r dotenv/config dist/server.js",
     "build": "webpack --env.production",
     "dev": "webpack --env.development --watch",
-    "test": "jest --detectOpenHandles --verbose"
+    "test": "jest --detectOpenHandles --silent --verbose",
+    "ci:test": "jest --silent --ci --runInBand --forceExit"
   },
   "keywords": [],
   "author": "",

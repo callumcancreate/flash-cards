@@ -32,8 +32,6 @@ export const initTables = async (client) => {
     .toString()
     .split(";");
 
-  console.log("tableScripts", tableScripts);
-  console.log("client", client);
   await Promise.all(tableScripts.map(async (sql) => await client.query(sql)));
 };
 
