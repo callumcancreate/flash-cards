@@ -5,14 +5,16 @@ import { categories, cards, tags } from "./mock-data";
 
 // Verify using test database
 export const connect = async () => {
+  console.log("Connecting to databse");
   const client = await pool.connect();
   const { rows } = await pool.query("SELECT current_database()");
   const dbName = rows[0].current_database;
-
+  console.log("Connected to " + dbName);
   if (
     dbName !== process.env.TEST_DATABASE ||
     (process.env.PGDATABASE && dbName === process.env.PGDATABASE)
   ) {
+    console.log("Error: Wrong database. Releasing client");
     await client.release();
     throw new Error("Tests are using wrong database");
   }
