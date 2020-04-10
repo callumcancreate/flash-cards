@@ -12,8 +12,6 @@ jobs:
         environment:
           POSTGRES_USER: postgres
           POSTGRES_DB: test
-    executor:
-      name: node/default
     steps:
       - checkout
       - node/with-cache:
