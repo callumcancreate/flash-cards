@@ -1,17 +1,10 @@
 version: 2.1
+orbs:
+  node: circleci/node@1.1.6
 jobs:
   build-and-test:
-    docker:
-      - image: circleci/node:dubnium
-        environment:
-          PGHOST: 127.0.0.1
-          PGUSER: postgres
-          DB_TEST_DATABASE: test
-          NODE_ENV: test
-      - image: circleci/postgres:9.6.5-alpine-ram
-        environment:
-          POSTGRES_USER: postgres
-          POSTGRES_DB: test
+    executor:
+      name: node/default
     steps:
       - checkout
       - node/with-cache:
