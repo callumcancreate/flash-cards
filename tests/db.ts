@@ -25,7 +25,10 @@ export const initTables = async (client) => {
   await client.query("DROP SCHEMA public CASCADE");
   await client.query("CREATE SCHEMA public");
   const tableScripts = fs
-    .readFileSync("../db-scripts/01-tables.sql", "utf8")
+    .readFileSync(
+      path.resolve(__dirname, "../db-scripts/01-tables.sql"),
+      "utf8"
+    )
     .toString()
     .split(";");
   await Promise.all(tableScripts.map(async (sql) => await client.query(sql)));
