@@ -35,7 +35,7 @@ describe("POST /cards", () => {
       front: "new front",
       back: "new back",
       hint: "new hint",
-      tags: [tags[1], newTag]
+      tags: [tags[1], newTag],
     };
 
     const response = await request
@@ -46,7 +46,7 @@ describe("POST /cards", () => {
     expect(response.body.card).toMatchObject({ ...newCard, cardId: newCardId });
     expect(response.body.card.tags[1]).toMatchObject({
       ...newTag,
-      tagId: newTagId
+      tagId: newTagId,
     });
 
     const { rows, rowCount } = await client.query(
@@ -70,18 +70,12 @@ describe("POST /cards", () => {
 
 describe("GET /cards/:id", () => {
   it("Gets a card by id", async () => {
-    const r1 = await request
-      .get(`/api/v1/cards/1`)
-      .send()
-      .expect(200);
+    const r1 = await request.get(`/api/v1/cards/1`).send().expect(200);
 
     expect(r1.body.card).toMatchObject(cards[1]);
 
     // Gets a card with no tags
-    const r2 = await request
-      .get(`/api/v1/cards/7`)
-      .send()
-      .expect(200);
+    const r2 = await request.get(`/api/v1/cards/7`).send().expect(200);
 
     expect(r2.body.card).toMatchObject(cards[7]);
   });
@@ -89,11 +83,7 @@ describe("GET /cards/:id", () => {
 
 describe("GET /cards", () => {
   it("Gets all cards", async () => {
-    const r1 = await request
-      .get(`/api/v1/cards`)
-      .query({})
-      .send()
-      .expect(200);
+    const r1 = await request.get(`/api/v1/cards`).query({}).send().expect(200);
     expect(r1.body.cards).toMatchObject(Object.values(cards));
   });
 
@@ -101,7 +91,7 @@ describe("GET /cards", () => {
     const includedTags = [tags[1], tags[2]];
     const excludedTags = [tags[3]];
     const expectedCards = Object.values(cards).filter(
-      card =>
+      (card) =>
         card.tags.find(({ tag }) => tag === tags[1].tag) &&
         card.tags.find(({ tag }) => tag === tags[2].tag) &&
         !card.tags.find(({ tag }) => tag === tags[3].tag)
@@ -111,7 +101,7 @@ describe("GET /cards", () => {
       .get(`/api/v1/cards`)
       .query({
         tagsAll: includedTags.map(({ tag }) => tag), // get cards with tag 1 and 2
-        tagsNone: excludedTags.map(({ tag }) => tag)
+        tagsNone: excludedTags.map(({ tag }) => tag),
       })
       .send()
       .expect(200);
@@ -165,7 +155,7 @@ describe("PATCH /cards/:id", () => {
       front: "new front",
       back: "new back",
       hint: "new hint",
-      tags: [tags[1], tags[3], newTag] // dropped tag 2, added tag 3 and new tag
+      tags: [tags[1], tags[3], newTag], // dropped tag 2, added tag 3 and new tag
     };
 
     const response = await request
@@ -176,7 +166,7 @@ describe("PATCH /cards/:id", () => {
     expect(response.body.card).toMatchObject(updatedCard);
     expect(response.body.card.tags[2]).toMatchObject({
       ...newTag,
-      tagId: newTagId
+      tagId: newTagId,
     });
 
     const cardQuery = await client.query(
@@ -201,10 +191,7 @@ describe("PATCH /cards/:id", () => {
 
 describe("DELETE /cards/:id", () => {
   it("Deletes a card by id", async () => {
-    await request
-      .delete(`/api/v1/cards/1`)
-      .send()
-      .expect(200);
+    await request.delete(`/api/v1/cards/1`).send().expect(200);
 
     const q1 = await client.query("select * from cards where card_id = 1");
     expect(q1.rowCount).toBe(0);
