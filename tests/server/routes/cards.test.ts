@@ -106,7 +106,6 @@ describe("GET /cards", () => {
       .send()
       .expect(200);
 
-    console.log(r1);
     expect(r1.body.cards).toMatchObject(Object.values(expectedCards));
   });
   it("Filters cards by values", async () => {

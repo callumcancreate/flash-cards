@@ -16,7 +16,18 @@ jobs:
       - checkout
       - run: npm install
       - run: npm run ci:test
+  deploy-prod:
+    machine:
+      enabled: true
+    steps:
+      - run: ssh callum@callumcancreate.com "./scripts/deploy/flash-cards.sh"
 workflows:
   build-and-test:
     jobs:
       - build-and-test
+      - deploy-prod:
+          filters:
+            branches:
+              only: master
+          requires:
+            - build-and-test

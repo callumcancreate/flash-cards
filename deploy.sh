@@ -1,5 +1,5 @@
 #!/bin/bash
-
+cd ~/projects/flash-cards
 git stash
 git checkout master
 git pull
