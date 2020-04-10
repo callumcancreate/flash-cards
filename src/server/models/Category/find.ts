@@ -1,3 +1,4 @@
+export default `
 WITH RECURSIVE category_crumbs AS (
   SELECT
     c.category_id,
@@ -56,3 +57,4 @@ FROM
   category_crumbs cc
   INNER JOIN categories c ON cc.category_id = c.category_id
   LEFT JOIN array_tags at ON c.category_id = at.category_id
+`;

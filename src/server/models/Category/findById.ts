@@ -1,3 +1,4 @@
+export default `
 WITH RECURSIVE parent_tags AS (
   WITH base_tags AS (
     SELECT
@@ -53,3 +54,4 @@ FROM
 WHERE
   c.category_id = $1
 LIMIT 1
+`;

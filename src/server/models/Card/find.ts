@@ -1,3 +1,4 @@
+export default `
 WITH json_tags AS (
   SELECT
     x. "tagId",
@@ -30,7 +31,7 @@ SELECT
   c.front,
   c.back,
   c.hint,
-  coalesce(array_agg(jt.tag) FILTER (WHERE jt.tag IS NOT NULL), ARRAY[]::json[]) AS tags
+  coalesce(array_agg(jt.tag ORDER BY ct.tag_id) FILTER (WHERE jt.tag IS NOT NULL), ARRAY[]::json[]) AS tags
 FROM
   cards c
   LEFT JOIN card_tags ct ON c.card_id = ct.card_id
@@ -57,3 +58,4 @@ HAVING
 ORDER BY
   c.card_id
 LIMIT $7 OFFSET $8
+`;

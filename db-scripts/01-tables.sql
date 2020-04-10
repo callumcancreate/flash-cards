@@ -1,6 +1,3 @@
--- DROP SCHEMA public CASCADE;
--- CREATE SCHEMA public;
-
 CREATE TABLE public.users (
   "user_id" serial PRIMARY KEY,
   "email" text NOT NULL,

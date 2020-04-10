@@ -1,5 +1,4 @@
 import { Pool } from "pg";
-import chalk from "chalk";
 
 const pool = new Pool({
   host: process.env.PGHOST,
@@ -10,7 +9,7 @@ const pool = new Pool({
       ? process.env.TEST_DATABASE
       : process.env.PGDATABASE,
   password: process.env.PGPASSWORD,
-  ssl: process.env.NODE_ENV === "production" ? true : false
+  ssl: process.env.PG_REQUIRE_SSL === "true" ? true : false,
 });
 
 pool.on("error", (err, client) => {

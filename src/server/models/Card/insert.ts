@@ -1,3 +1,4 @@
+export default `
 WITH insert_card AS (
 INSERT INTO cards (front, back, hint)
     VALUES ($1, $2, $3)
@@ -60,3 +61,4 @@ SELECT
         tag_id) x), ARRAY[]::json[]) tags
 FROM
   insert_card ic
+`;

@@ -1,3 +1,4 @@
+export default `
 WITH updated_card AS (
   UPDATE
     cards
@@ -80,3 +81,4 @@ SELECT
           tag_id) x), ARRAY[]::json[]) tags
 FROM
   updated_card
+`;
