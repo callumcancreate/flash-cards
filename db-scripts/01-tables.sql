@@ -1,7 +1,3 @@
---DROP SCHEMA public CASCADE;
-
---CREATE SCHEMA public;
-
 CREATE TABLE public.tags (
   "tag_id" serial PRIMARY KEY,
   "tag" text UNIQUE NOT NULL

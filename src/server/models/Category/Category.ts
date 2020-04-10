@@ -1,24 +1,14 @@
-import fs from "fs";
-import path from "path";
 import client from "../../db";
 import Resource from "../Resource";
 import CategoryType from "../../../types/Category";
 import TagType from "../../../types/Tag";
-import { CategorySchema, CategoryFindOptions } from "../../Schemas/Category";
+import { CategorySchema } from "../../Schemas/Category";
 import NamedError from "../NamedError";
-// import { validateSchema, camelToSnake } from "../../../utils";
-
-const insertSql = fs.readFileSync(path.join(__dirname, "insert.sql"), "utf8");
-const updateSql = fs.readFileSync(path.join(__dirname, "update.sql"), "utf8");
-const findSql = fs.readFileSync(path.join(__dirname, "find.sql"), "utf8");
-const findByIdSql = fs.readFileSync(
-  path.join(__dirname, "findById.sql"),
-  "utf8"
-);
-const unlinkDeleteSql = fs.readFileSync(
-  path.join(__dirname, "unlinkDelete.sql"),
-  "utf8"
-);
+import insertSql from "./insert";
+import updateSql from "./update";
+import findSql from "./find";
+import findByIdSql from "./findById";
+import unlinkDeleteSql from "./unlinkDelete";
 
 export default class Category extends Resource {
   categoryId?: number;
@@ -40,7 +30,7 @@ export default class Category extends Resource {
       const { rowCount, rows } = await client.query(insertSql, [
         parentId,
         name,
-        tags.map(v => v.tag)
+        tags.map((v) => v.tag),
       ]);
       await client.query("COMMIT");
       this.tags = rows[0].tags;
@@ -66,7 +56,7 @@ export default class Category extends Resource {
         parentId,
         name,
         categoryId,
-        tags.map(t => t.tag)
+        tags.map((t) => t.tag),
       ]);
 
       if (!rowCount) throw new NamedError("Server", "Something went wrong");
@@ -105,7 +95,7 @@ export default class Category extends Resource {
 
     let map = {};
 
-    rows.forEach(cat =>
+    rows.forEach((cat) =>
       cat.crumbs.reduce((acc, crumb) => {
         crumb == cat.categoryId
           ? (acc[crumb] = { ...cat, crumbs: undefined })
@@ -115,11 +105,12 @@ export default class Category extends Resource {
       }, map)
     );
 
-    const toArrayStructure = map => {
+    const toArrayStructure = (map) => {
       const values: CategoryType[] = Object.values(map);
       return values.length
         ? values.map(
-            v => new Category({ ...v, children: toArrayStructure(v.children) })
+            (v) =>
+              new Category({ ...v, children: toArrayStructure(v.children) })
           )
         : [];
     };
@@ -134,9 +125,9 @@ export default class Category extends Resource {
 
   static async deleteById(id) {
     const {
-      rowCount
+      rowCount,
     } = await client.query("DELETE FROM categories WHERE category_id = $1", [
-      id
+      id,
     ]);
     return rowCount;
   }

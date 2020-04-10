@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 import client from "../../db";
 import Resource from "../Resource";
 import CardType from "../../../types/Card";
@@ -7,18 +5,14 @@ import TagType from "../../../types/Tag";
 import {
   CardSchema,
   CardFindFilter,
-  CardFindOptions
+  CardFindOptions,
 } from "../../Schemas/Card";
 import NamedError from "../NamedError";
 import { validateSchema, camelToSnake } from "../../../utils";
-
-const insertSql = fs.readFileSync(path.join(__dirname, "insert.sql"), "utf8");
-const updateSql = fs.readFileSync(path.join(__dirname, "update.sql"), "utf8");
-const findSql = fs.readFileSync(path.join(__dirname, "find.sql"), "utf8");
-const findByIdSql = fs.readFileSync(
-  path.join(__dirname, "findById.sql"),
-  "utf8"
-);
+import insertSql from "./insert";
+import updateSql from "./update";
+import findSql from "./find";
+import findByIdSql from "./findById";
 
 export default class Card extends Resource {
   cardId?: number;
@@ -40,7 +34,7 @@ export default class Card extends Resource {
         front,
         back,
         hint,
-        tags.map(t => t.tag)
+        tags.map((t) => t.tag),
       ]);
       await client.query("COMMIT");
       this.cardId = rows[0].cardId;
@@ -62,7 +56,7 @@ export default class Card extends Resource {
         back,
         hint,
         cardId,
-        tags.map(t => t.tag)
+        tags.map((t) => t.tag),
       ]);
       if (!rowCount) throw new NamedError("Server", "Something went wrong");
       await client.query("COMMIT");
@@ -90,10 +84,10 @@ export default class Card extends Resource {
     if (typeof tagsAll === "string") config.tagsAll = [config.tagsAll];
     if (typeof tagsNone === "string") config.tagsNone = [config.tagsNone];
     const filter = validateSchema(config, CardFindFilter, {
-      presence: "optional"
+      presence: "optional",
     });
     const options = validateSchema(config, CardFindOptions, {
-      presence: "optional"
+      presence: "optional",
     });
 
     if (filter.errors)
@@ -118,13 +112,13 @@ export default class Card extends Resource {
       filter.value.back,
       filter.value.hint,
       options.value.limit,
-      options.value.offset
+      options.value.offset,
     ]);
-    return rows.map(c => new Card(c));
+    return rows.map((c) => new Card(c));
   }
   static async deleteById(id) {
     const {
-      rowCount
+      rowCount,
     } = await client.query(`DELETE FROM cards WHERE card_id = $1`, [id]);
     return rowCount;
   }

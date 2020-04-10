@@ -5,14 +5,16 @@ import { categories, cards, tags } from "./mock-data";
 
 // Verify using test database
 export const connect = async () => {
+  console.log("Connecting to databse");
   const client = await pool.connect();
   const { rows } = await pool.query("SELECT current_database()");
   const dbName = rows[0].current_database;
-
+  console.log("Connected to " + dbName);
   if (
     dbName !== process.env.TEST_DATABASE ||
     (process.env.PGDATABASE && dbName === process.env.PGDATABASE)
   ) {
+    console.log("Error: Wrong database. Releasing client");
     await client.release();
     throw new Error("Tests are using wrong database");
   }
@@ -21,7 +23,9 @@ export const connect = async () => {
 };
 
 // Init tables based on db-scripts
-export const initTables = async client => {
+export const initTables = async (client) => {
+  await client.query("DROP SCHEMA public CASCADE");
+  await client.query("CREATE SCHEMA public");
   const tableScripts = fs
     .readFileSync(
       path.resolve(__dirname, "../db-scripts/01-tables.sql"),
@@ -29,10 +33,11 @@ export const initTables = async client => {
     )
     .toString()
     .split(";");
-  await Promise.all(tableScripts.map(async sql => await client.query(sql)));
+
+  await Promise.all(tableScripts.map(async (sql) => await client.query(sql)));
 };
 
-export const seedData = async client => {
+export const seedData = async (client) => {
   // Add tags
   await Promise.all(
     Object.values(tags).map(
@@ -42,17 +47,17 @@ export const seedData = async client => {
   );
   // Add cards
   await Promise.all(
-    Object.values(cards).map(async card => {
+    Object.values(cards).map(async (card) => {
       await client.query(
         "INSERT INTO cards (front, back, hint) VALUES ($1, $2, $3)",
         [card.front, card.back, card.hint]
       );
       await Promise.all(
         card.tags.map(
-          async tag =>
+          async (tag) =>
             await client.query("INSERT INTO card_tags VALUES ($1, $2)", [
               card.cardId,
-              tag.tagId
+              tag.tagId,
             ])
         )
       );
@@ -68,13 +73,15 @@ export const seedData = async client => {
       );
       await Promise.all(
         cat.tags.map(
-          async tag =>
+          async (tag) =>
             await client.query("INSERT INTO category_tags VALUES ($1, $2)", [
               cat.categoryId,
-              tag.tagId
+              tag.tagId,
             ])
         )
       );
     })
   );
 };
+
+export { default as pool } from "../src/server/db";

@@ -33,7 +33,7 @@ describe("POST /categories", () => {
     const newCategory = {
       parentId: 1,
       tags: [tags[2], { tag: "new tag" }],
-      name: "category" + newCatId
+      name: "category" + newCatId,
     };
 
     const response = await request
@@ -67,7 +67,7 @@ describe("POST /categories", () => {
     expect(rowCount).toBe(1);
     expect(rows[0]).toMatchObject({
       ...newCategory,
-      tags: newCategory.tags.slice(1) // remove inherited tag
+      tags: newCategory.tags.slice(1), // remove inherited tag
     });
     expect(rows[0].tags[0].tagId).toBe(newTagId); // Check new tag added
     expect(rows[0].count).toBe(newTagId); // Check existing tag is not added as new tag
@@ -78,7 +78,7 @@ describe("POST /categories", () => {
     const newCategory = {
       parentId: 1,
       tags: [],
-      name: "category" + newCatId
+      name: "category" + newCatId,
     };
 
     const response = await request
@@ -125,7 +125,7 @@ describe("POST /categories", () => {
       .expect(201);
 
     const {
-      rows
+      rows,
     } = await client.query(
       "select parent_id, name from categories where category_id = $1",
       [newId]
@@ -137,10 +137,7 @@ describe("POST /categories", () => {
 
 describe("GET /categories", () => {
   it("Gets categories", async () => {
-    const response = await request
-      .get(`/api/v1/categories`)
-      .send()
-      .expect(200);
+    const response = await request.get(`/api/v1/categories`).send().expect(200);
 
     const expected = [
       {
@@ -151,14 +148,14 @@ describe("GET /categories", () => {
             children: [
               {
                 ...categories[4],
-                children: []
-              }
-            ]
-          }
-        ]
+                children: [],
+              },
+            ],
+          },
+        ],
       },
       { ...categories[2], children: [] },
-      { ...categories[5], children: [] }
+      { ...categories[5], children: [] },
     ];
 
     expect(response.body.categories).toMatchObject(expected);
@@ -182,7 +179,7 @@ describe("GET /categories/:categoryId", () => {
     expect(r1.tags).toMatchObject([
       { ...c1.tags[0], isInherited: true },
       { ...c1.tags[1], isInherited: true },
-      { ...c3.tags[0], isInherited: false }
+      { ...c3.tags[0], isInherited: false },
     ]);
 
     const response2 = await request
@@ -232,7 +229,7 @@ describe("GET /categories/:categoryId/cards", () => {
       cards[1],
       cards[2],
       cards[3],
-      cards[4]
+      cards[4],
     ]);
   });
 });
@@ -244,7 +241,7 @@ describe("PATCH /categories/:categoryId", () => {
       ...categories[3],
       name: "updated name",
       parentId: 2,
-      tags: [tags[1], tags[2], newTag] // 1 not inherited, 2 inherited, 4 new, (3 dropped)
+      tags: [tags[1], tags[2], newTag], // 1 not inherited, 2 inherited, 4 new, (3 dropped)
     };
     const newTagId = Object.keys(tags).length + 1;
     const response = await request
@@ -258,8 +255,8 @@ describe("PATCH /categories/:categoryId", () => {
         { ...tags[1], isInherited: false },
         { ...tags[2], isInherited: true },
         { ...tags[3], isInherited: true },
-        { ...newTag, tagId: newTagId, isInherited: false }
-      ]
+        { ...newTag, tagId: newTagId, isInherited: false },
+      ],
     });
 
     const { rows, rowCount } = await client.query(
@@ -275,12 +272,12 @@ describe("PATCH /categories/:categoryId", () => {
     expect(rows[0]).toMatchObject({
       category_id: 3,
       tag_id: tags[1].tagId,
-      tag: tags[1].tag
+      tag: tags[1].tag,
     });
     expect(rows[1]).toMatchObject({
       category_id: 3,
       tag_id: newTagId,
-      tag: newTag.tag
+      tag: newTag.tag,
     });
   });
   it("Doesn't update a category due to missing ", async () => {});
