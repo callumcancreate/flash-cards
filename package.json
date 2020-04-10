@@ -8,7 +8,7 @@
     "build": "webpack --env.production",
     "dev": "webpack --env.development --watch",
     "test": "jest --detectOpenHandles --silent --verbose",
-    "ci:test": "jest --silent --ci --runInBand --forceExit"
+    "ci:test": "jest --ci --runInBand --forceExit"
   },
   "keywords": [],
   "author": "",
