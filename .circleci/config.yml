@@ -20,7 +20,7 @@ jobs:
     machine:
       enabled: true
     steps:
-      - run: ssh callum@callumcancreate.com "./scripts/deploy/flash-cards.sh"
+      - run: ssh flashcards@callumcancreate.com "./deploy.sh"
 workflows:
   build-and-test:
     jobs:
