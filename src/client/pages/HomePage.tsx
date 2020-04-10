@@ -5,7 +5,7 @@ import ErrorMessage from "../components/ErrorMessage";
 import CategoryList from "../components/CategoryList";
 import "./HomePage.scss";
 
-const Home = () => {
+const HomePage = () => {
   const [data, error, isLoading] = useResource("/categories", {});
   const categories = data.categories || [];
   return (
@@ -18,4 +18,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default HomePage;
