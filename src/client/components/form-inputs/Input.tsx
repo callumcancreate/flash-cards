@@ -8,17 +8,20 @@ interface Props extends React.InputHTMLAttributes<any> {
   onChange?: (...args: any[]) => void;
 }
 
-const FormGroupWrap = ({ isWrapped, children }) =>
+const FormGroupWrap: React.FC<{ isWrapped: boolean }> = ({
+  isWrapped,
+  children,
+}) =>
   isWrapped ? <div className="form-group">{children}</div> : <>{children}</>;
 
 const Input: React.FC<Props> = ({ label, onChange, skinny, ...props }) => {
-  let [field, meta, helpers] = useField(props as FieldConfig);
+  const [field, meta, helpers] = useField(props as FieldConfig);
   if (onChange) field.onChange = (e) => onChange(e, helpers);
-
+  const hash = String(Date.now() + Math.random());
   return (
     <FormGroupWrap isWrapped={!skinny}>
-      {label && <label>{label}</label>}
-      <input className="form-control" {...props} {...field} />
+      {label && <label htmlFor={hash}>{label}</label>}
+      <input id={hash} className="form-control" {...props} {...field} />
       <ErrorMessage error={meta.error} isHidden={!meta.touched} />
     </FormGroupWrap>
   );

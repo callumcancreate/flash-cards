@@ -14,7 +14,9 @@ const useBodyScrollLock = (isLocked) => {
     if (!isLocked) {
       body.style.overflow = '';
     }
-    return () => (body.style.overflow = '');
+    return () => {
+      body.style.overflow = '';
+    };
   }, [isLocked]);
 };
 

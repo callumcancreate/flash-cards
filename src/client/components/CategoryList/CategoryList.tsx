@@ -2,6 +2,7 @@ import React from 'react';
 import Category from '../../../types/Category';
 import CategoryListItem from './CategoryListItem';
 import './CategoryList.scss';
+
 interface Props {
   categories: Category[];
 }

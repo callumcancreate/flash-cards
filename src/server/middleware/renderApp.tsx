@@ -1,17 +1,17 @@
 import ReactDOMServer from 'react-dom/server';
 import { StaticRouter } from 'react-router';
 import React from 'react';
-import App from '../../client/components/App';
 import fs from 'fs';
 import path from 'path';
+import App from '../../client/components/App';
 
 const template =
   process.env.NODE_ENV === 'test'
     ? ''
     : fs.readFileSync(
-        path.resolve(__dirname, '../../../dist/public/template.html'),
-        'utf8'
-      );
+      path.resolve(__dirname, '../../../dist/public/template.html'),
+      'utf8'
+    );
 
 const renderApp = (req, res) => {
   // res.send(__dirname);

@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useState } from 'react';
 
 export const AuthContext = createContext(null);
 
@@ -7,7 +7,7 @@ export const AuthProvider = ({ children }) => {
   // TODO: useeffect to set initial state
   // TODO: Login functions
 
-  const login = (user) => setUser(user);
+  const login = (u) => setUser(u);
   const logout = () => setUser(null);
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

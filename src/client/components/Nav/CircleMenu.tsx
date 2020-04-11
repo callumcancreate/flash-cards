@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './CircleMenu.scss';
 
 interface Props {
@@ -12,6 +12,9 @@ const CircleMenu: React.FC<Props> = ({ isOpen, onClick }) => {
       className={`circle-menu${isOpen ? ' open' : ''}`}
       onClick={onClick}
       style={{ top: '3%', right: '3%' }}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => console.log(e)} // TODO: add listener
     >
       <div className="bar1" />
       <div className="bar2" />

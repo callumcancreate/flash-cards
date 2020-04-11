@@ -26,10 +26,10 @@ export default function useResource(url, defaultData = {}, _options?: Options) {
         setData(response.data);
       } catch (e) {
         console.error(e);
-        let message = e.response ? e.response.data.error : e.message;
-        let errors = e.response && e.response.data && e.response.data.errors;
+        const message = e.response ? e.response.data.error : e.message;
+        const errs = e.response && e.response.data && e.response.data.errors;
         setError(message);
-        setErrors(errors);
+        setErrors(errs);
       }
       setIsLoading(false);
     })();

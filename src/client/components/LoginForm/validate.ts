@@ -1,4 +1,5 @@
 import { isEmail } from 'validator';
+
 export interface Values {
   email: string;
   password: string;

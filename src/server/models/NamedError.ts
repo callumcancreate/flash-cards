@@ -12,8 +12,11 @@ export type Name =
 
 class NamedError extends Error {
   name: Name;
+
   error: string;
+
   errors?: object;
+
   date: Date;
 
   constructor(name: Name, error: string, errors?, ...args) {

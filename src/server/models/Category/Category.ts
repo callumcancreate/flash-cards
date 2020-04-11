@@ -12,22 +12,22 @@ import unlinkDeleteSql from './unlinkDelete';
 
 export default class Category extends Resource {
   categoryId?: number;
+
   parentId?: number;
+
   children?: Category[];
+
   name: string;
+
   tags: TagType[];
 
   static schema = CategorySchema;
 
-  constructor(props: CategoryType) {
-    super(props);
-  }
-
-  async _insert() {
+  async insert() {
     try {
       const { tags, name, parentId } = this;
       await client.query('BEGIN');
-      const { rowCount, rows } = await client.query(insertSql, [
+      const { rows } = await client.query(insertSql, [
         parentId,
         name,
         tags.map((v) => v.tag),
@@ -42,13 +42,12 @@ export default class Category extends Resource {
         e.constraint === 'unique_name' ||
         e.constraint === 'unique_name_null_parent'
       )
-        //categories_name_key
         throw new NamedError('Client', 'Category name must be unique');
       throw e;
     }
   }
 
-  async _put() {
+  async put() {
     try {
       await client.query('BEGIN');
       const { tags, name, categoryId, parentId } = this;
@@ -61,9 +60,9 @@ export default class Category extends Resource {
 
       if (!rowCount) throw new NamedError('Server', 'Something went wrong');
       await client.query('COMMIT');
-      for (let key in rows[0]) {
+      Object.keys(rows[0]).forEach((key) => {
         this[key] = rows[0][key];
-      }
+      });
       return this;
     } catch (e) {
       await client.query('ROLLBACK');
@@ -71,15 +70,14 @@ export default class Category extends Resource {
         e.constraint === 'unique_name' ||
         e.constraint === 'unique_name_null_parent'
       )
-        //categories_name_key
         throw new NamedError('Client', 'Category name must be unique');
       console.log(e);
       throw e;
     }
   }
 
-  static async findById(id) {
-    id = parseInt(id);
+  static async findById(_id) {
+    const id = parseInt(_id, 10);
     const { rows } = await client.query(findByIdSql, [id]);
     const category = rows[0];
     if (!category)
@@ -91,13 +89,12 @@ export default class Category extends Resource {
   }
 
   static async find(filter) {
-    let { rows } = await client.query(findSql, [filter.root]);
-
-    let map = {};
+    const { rows } = await client.query(findSql, [filter.root]);
+    const map = {};
 
     rows.forEach((cat) =>
       cat.crumbs.reduce((acc, crumb) => {
-        crumb == cat.categoryId
+        crumb === cat.categoryId
           ? (acc[crumb] = { ...cat, crumbs: undefined })
           : (acc[crumb] = acc[crumb] || {});
         acc[crumb].children = { ...acc[crumb].children };
@@ -105,13 +102,13 @@ export default class Category extends Resource {
       }, map)
     );
 
-    const toArrayStructure = (map) => {
-      const values: CategoryType[] = Object.values(map);
+    const toArrayStructure = (_map) => {
+      const values: CategoryType[] = Object.values(_map);
       return values.length
         ? values.map(
-            (v) =>
-              new Category({ ...v, children: toArrayStructure(v.children) })
-          )
+          (v) =>
+            new Category({ ...v, children: toArrayStructure(v.children) })
+        )
         : [];
     };
 

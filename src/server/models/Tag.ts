@@ -1,20 +1,17 @@
 import client from '../db';
 import Resource from './Resource';
-import TagType from '../../types/Tag';
 import { TagSchema, TagFindOptions } from '../Schemas/Tag';
 import NamedError from './NamedError';
 import { validateSchema, camelToSnake } from '../../utils';
 
 export default class Tag extends Resource {
   tagId?: number;
+
   tag: string;
+
   static schema = TagSchema;
 
-  constructor(props: TagType) {
-    super(props);
-  }
-
-  async _insert() {
+  async insert() {
     const { tag } = this;
     const { rows } = await client.query(
       `
@@ -27,9 +24,9 @@ export default class Tag extends Resource {
     return this;
   }
 
-  async _put() {
+  async put() {
     const { tag, tagId } = this;
-    const { rows } = await client.query(
+    await client.query(
       `
         UPDATE tags SET tag = $1
         WHERE tag_id = $2
@@ -40,8 +37,8 @@ export default class Tag extends Resource {
     return this;
   }
 
-  static async findById(id) {
-    id = parseInt(id);
+  static async findById(_id) {
+    const id = parseInt(_id, 10);
     const { rows } = await client.query(
       `
         SELECT tag_id "tagId", tag
@@ -56,8 +53,8 @@ export default class Tag extends Resource {
     return new Tag(tag);
   }
 
-  static async find(filter, options?) {
-    filter = validateSchema(filter, TagSchema, { presence: 'optional' });
+  static async find(_filter, _options?) {
+    const filter = validateSchema(_filter, TagSchema, { presence: 'optional' });
 
     if (filter.errors)
       throw new NamedError(
@@ -66,8 +63,8 @@ export default class Tag extends Resource {
         filter.errors
       );
 
-    options = validateSchema(options || {}, TagFindOptions, {
-      presence: 'optional',
+    const options = validateSchema(_options || {}, TagFindOptions, {
+      presence: 'optional'
     });
 
     if (options.errors)
@@ -78,10 +75,9 @@ export default class Tag extends Resource {
       );
 
     const conditions = Object.keys(filter.value).length
-      ? 'WHERE ' +
-        Object.keys(filter.value)
+      ? `WHERE ${Object.keys(filter.value)
           .map((key, i) => `c.${camelToSnake(key)} = $${i + 3}`)
-          .join(' AND ')
+          .join(' AND ')}`
       : '';
     console.log('conditions', conditions);
     const { rows } = await client.query(
@@ -96,21 +92,9 @@ export default class Tag extends Resource {
       [
         options.value.limit,
         options.value.offset,
-        ...Object.values(filter.value),
+        ...Object.values(filter.value)
       ]
     );
     return rows.map((t) => new Tag(t));
   }
-
-  // async delete() {
-  //   const { rowCount } = await client.query(
-  //     `
-  //       DELETE FROM cards
-  //       WHERE card_id = $1
-  //     `,
-  //     [this.cardId]
-  //   );
-  //   if (!rowCount) throw new NamedError("Server", "Something went wrong");
-  //   return rowCount;
-  // }
 }

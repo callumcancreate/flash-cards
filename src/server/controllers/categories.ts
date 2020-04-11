@@ -1,6 +1,5 @@
 import { asyncCatchWrapper } from '../../utils';
 import Category from '../models/Category';
-import Card from '../models/Card';
 import NamedError from '../models/NamedError';
 
 export const createCategory = asyncCatchWrapper(async (req, res) => {
@@ -32,9 +31,9 @@ export const updateCategory = asyncCatchWrapper(async (req, res) => {
       'NotFound',
       `Unable to find category with id ${req.params.categoryId}`
     );
-  for (let key in req.body) {
+  Object.keys(req.body).forEach((key) => {
     category[key] = req.body[key];
-  }
+  });
   await category.save();
   return res.send({ category });
 });

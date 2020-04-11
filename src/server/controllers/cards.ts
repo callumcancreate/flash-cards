@@ -1,5 +1,5 @@
 import Card from '../models/Card';
-import { asyncCatchWrapper, validateSchema } from '../../utils';
+import { asyncCatchWrapper } from '../../utils';
 import NamedError from '../models/NamedError';
 
 export const createCard = asyncCatchWrapper(async (req, res) => {
@@ -24,9 +24,9 @@ export const updateCard = asyncCatchWrapper(async (req, res) => {
       'NotFound',
       `Unable to find card with id ${req.params.cardId}`
     );
-  for (let key in req.body) {
+  Object.keys(req.body).forEach((key) => {
     card[key] = req.body[key];
-  }
+  });
   await card.save();
   return res.send({ card });
 });

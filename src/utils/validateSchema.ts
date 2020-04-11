@@ -14,8 +14,9 @@ export default function validateSchema(values, Schema, options = {}) {
 
   if (error) {
     errors = error.details.reduce((map, item) => {
-      map[item.path.join('.')] = item.message;
-      return map;
+      const newMap = { ...map };
+      newMap[item.path.join('.')] = item.message;
+      return newMap;
     }, {});
   }
   return { value, error, errors };

@@ -9,7 +9,7 @@ const pool = new Pool({
       ? process.env.TEST_DATABASE
       : process.env.PGDATABASE,
   password: process.env.PGPASSWORD,
-  ssl: process.env.PG_REQUIRE_SSL === 'true' ? true : false,
+  ssl: process.env.PG_REQUIRE_SSL === 'true',
 });
 
 pool.on('error', (err, client) => {

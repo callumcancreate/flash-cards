@@ -2,7 +2,7 @@ import React from 'react';
 import Layout from '../components/Layout';
 import LoginForm from '../components/LoginForm';
 
-const LoginPage = () => {
+const LoginPage: React.FC = () => {
   return (
     <Layout noHeader>
       <div

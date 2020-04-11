@@ -1,6 +1,6 @@
+import express from 'express';
 import * as c from '../controllers/categories';
 import { getCards } from '../controllers/cards';
-import express from 'express';
 import validateBody from '../middleware/validateBody';
 import { PatchCategorySchema } from '../Schemas/Category';
 

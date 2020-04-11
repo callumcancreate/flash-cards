@@ -7,7 +7,7 @@ import { AuthContext } from '../Auth';
 import './Nav.scss';
 
 export interface Link {
-  onClick: (e?: React.MouseEvent) => any;
+  onClick: (e?: React.MouseEvent) => void;
   label: string;
 }
 interface Props {
@@ -20,13 +20,12 @@ const Nav: React.FC<Props> = ({ links }) => {
   const navStatus = isNavOpen ? ' open' : '';
 
   // Set default links
-  if (!links)
-    links = [
-      { onClick: () => history.push('/categories'), label: 'Categories' },
-      user
-        ? { onClick: logout, label: 'Log out' }
-        : { onClick: () => history.push('/login'), label: 'Log in' },
-    ];
+  const defaultLinks = [
+    { onClick: () => history.push('/categories'), label: 'Categories' },
+    user
+      ? { onClick: logout, label: 'Log out' }
+      : { onClick: () => history.push('/login'), label: 'Log in' }
+  ];
 
   useBodyScrollLock(isNavOpen);
 
@@ -42,12 +41,17 @@ const Nav: React.FC<Props> = ({ links }) => {
         <div
           className={`nav-container${navStatus}`}
           onClick={() => setIsNavOpen(false)}
+          onKeyDown={(e) => console.log(e)} // TODO: fix this
+          role="button"
+          tabIndex={0}
         >
           <div className={`nav-slider${navStatus}`}>
             <ul>
-              {links.map(({ onClick, label }, i) => (
-                <li key={i} onClick={onClick}>
-                  {label}
+              {(links || defaultLinks).map(({ onClick, label }) => (
+                <li key={label}>
+                  <button type="button" onClick={onClick}>
+                    {label}
+                  </button>
                 </li>
               ))}
             </ul>
