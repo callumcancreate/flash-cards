@@ -8,7 +8,7 @@
     "build": "webpack --env.production",
     "dev": "webpack --env.development --watch",
     "test": "jest --detectOpenHandles --silent --verbose",
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx src --color",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx src --color --max-warnings=3",
     "format": "prettier --write '**/*.{ts,tsx}'",
     "ci:test": "jest --ci --silent --runInBand --forceExit"
   },
