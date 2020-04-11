@@ -6,12 +6,19 @@ import Input from "../form-inputs/Input";
 import { AuthContext } from "../Auth";
 import "./LoginForm.scss";
 import { Redirect } from "react-router-dom";
+import { Values } from "./validate";
 
-const LoginForm = ({ initialValues = { email: "", password: "" } }) => {
+interface Props {
+  initialValues?: Values;
+}
+
+const LoginForm: React.FC<Props> = ({
+  initialValues = { email: "", password: "" },
+}) => {
   const { user } = useContext(AuthContext);
   if (user) return <Redirect to="/" />;
 
-  const onSubmit = async ({ email, password }, actions) => {
+  const onSubmit = async ({ email, password }: Values, actions) => {
     try {
       console.log(email, password);
     } catch (e) {

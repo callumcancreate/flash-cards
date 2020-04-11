@@ -8,9 +8,48 @@
     <meta name="description" content="Flash card app" />
     <title>Flash Cards</title>
     <base href="/" />
+    <style>
+      @keyframes round {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div
+      id="load-overlay"
+      style="
+        background-color: #fff;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+      "
+    >
+      <div
+        style="
+          height: 30px;
+          width: 30px;
+          border: 5px;
+          position: absolute;
+          border-style: solid;
+          border-radius: 100%;
+          animation: round 500ms linear infinite;
+          border-color: rgba(0, 0, 0, 0.6);
+          border-top-color: rgba(0, 0, 0, 0.2);
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        "
+      ></div>
+    </div>
     <div id="modal"></div>
     <div id="root"><!-- APP --></div>
   </body>
