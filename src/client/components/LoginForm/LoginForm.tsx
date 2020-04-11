@@ -7,6 +7,7 @@ import { AuthContext } from "../Auth";
 import "./LoginForm.scss";
 import { Redirect } from "react-router-dom";
 import { Values } from "./validate";
+import api from "../../../apis/serverApi";
 
 interface Props {
   initialValues?: Values;
@@ -15,13 +16,15 @@ interface Props {
 const LoginForm: React.FC<Props> = ({
   initialValues = { email: "", password: "" },
 }) => {
-  const { user } = useContext(AuthContext);
+  const { user, login } = useContext(AuthContext);
   if (user) return <Redirect to="/" />;
 
-  const onSubmit = async ({ email, password }: Values, actions) => {
+  const onSubmit = async (values: Values, actions) => {
     try {
-      console.log(email, password);
+      const { data } = await api.open.post("/users/login", values);
+      login(data);
     } catch (e) {
+      console.error(e);
       actions.setErrors({
         password: "Unable to login. Please check your email or password.",
       });

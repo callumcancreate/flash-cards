@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
-import api from "../../apis/serverApi";
+import serverApi from "../../apis/serverApi";
 
-export default function useResource(url, defaultData = {}) {
+interface Options {
+  secure: boolean;
+}
+const defaultOptions: Options = { secure: false };
+
+export default function useResource(url, defaultData = {}, _options?: Options) {
+  const options: Options = { ...defaultOptions, ..._options };
+  const api = options.secure ? serverApi.secure : serverApi.open;
   const [data, setData] = useState(defaultData);
   const [error, setError] = useState(null);
   const [errors, setErrors] = useState({});

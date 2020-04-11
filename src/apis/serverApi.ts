@@ -1,7 +1,11 @@
 import axios from "axios";
 
-const server = axios.create({
-  baseURL: "/api/v1"
+const open = axios.create({
+  baseURL: "/api/v1",
 });
 
-export default server;
+const secure = axios.create({
+  baseURL: "/api/v1",
+});
+
+export default { open, secure };

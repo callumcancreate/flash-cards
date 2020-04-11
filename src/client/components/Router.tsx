@@ -1,12 +1,15 @@
 import React from "react";
-import { Route, Switch } from "react-router-dom";
+import { Route, Switch, Redirect } from "react-router-dom";
 import AuthRoute from "./AuthRoute";
-import HomePage from "../pages/HomePage";
+import CategoriesPage from "../pages/CategoriesPage";
 import LoginPage from "../pages/LoginPage";
 
 const Router = () => (
   <Switch>
-    <Route path="/" exact component={HomePage} />
+    <Route path="/" exact>
+      <Redirect to="/categories" />
+    </Route>
+    <AuthRoute path="/categories" component={CategoriesPage} />
     <Route path="/login" component={LoginPage} />
   </Switch>
 );
