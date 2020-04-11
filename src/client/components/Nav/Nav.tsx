@@ -1,10 +1,10 @@
-import React, { useState, useContext } from "react";
-import CircleMenu from "./CircleMenu";
-import useBodyScrollLock from "../../hooks/useBodyScrollLock";
-import history from "../../constants/history";
-import { AuthContext } from "../Auth";
+import React, { useState, useContext } from 'react';
+import CircleMenu from './CircleMenu';
+import useBodyScrollLock from '../../hooks/useBodyScrollLock';
+import history from '../../constants/history';
+import { AuthContext } from '../Auth';
 
-import "./Nav.scss";
+import './Nav.scss';
 
 export interface Link {
   onClick: (e?: React.MouseEvent) => any;
@@ -17,15 +17,15 @@ interface Props {
 const Nav: React.FC<Props> = ({ links }) => {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const { user, logout } = useContext(AuthContext);
-  const navStatus = isNavOpen ? " open" : "";
+  const navStatus = isNavOpen ? ' open' : '';
 
   // Set default links
   if (!links)
     links = [
-      { onClick: () => history.push("/categories"), label: "Categories" },
+      { onClick: () => history.push('/categories'), label: 'Categories' },
       user
-        ? { onClick: logout, label: "Log out" }
-        : { onClick: () => history.push("/login"), label: "Log in" },
+        ? { onClick: logout, label: 'Log out' }
+        : { onClick: () => history.push('/login'), label: 'Log in' },
     ];
 
   useBodyScrollLock(isNavOpen);

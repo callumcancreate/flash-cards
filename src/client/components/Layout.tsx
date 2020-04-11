@@ -1,6 +1,6 @@
-import React from "react";
-import Nav from "./Nav";
-import Footer from "./Footer";
+import React from 'react';
+import Nav from './Nav';
+import Footer from './Footer';
 
 interface Props {
   header?: JSX.Element;

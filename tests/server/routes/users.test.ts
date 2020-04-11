@@ -1,7 +1,7 @@
-import server from "../../../src/server/server";
-import supertest from "supertest";
-import * as db from "../../db";
-import { users } from "../../mock-data";
+import server from '../../../src/server/server';
+import supertest from 'supertest';
+import * as db from '../../db';
+import { users } from '../../mock-data';
 
 const request = supertest(server);
 let client;
@@ -26,12 +26,12 @@ afterAll(async () => await client.release());
  *  TESTS
  ***********************************/
 
-describe("POST /users", () => {
-  it("Creates a new user", async () => {});
+describe('POST /users', () => {
+  it('Creates a new user', async () => {});
   it("Doesn't create a new user", async () => {});
 });
 
-describe("POST /login", () => {
-  it("Logs a user in", async () => {});
+describe('POST /login', () => {
+  it('Logs a user in', async () => {});
   it("Doesn't log a user in", async () => {});
 });

@@ -1,9 +1,9 @@
-import client from "../db";
-import Resource from "./Resource";
-import TagType from "../../types/Tag";
-import { TagSchema, TagFindOptions } from "../Schemas/Tag";
-import NamedError from "./NamedError";
-import { validateSchema, camelToSnake } from "../../utils";
+import client from '../db';
+import Resource from './Resource';
+import TagType from '../../types/Tag';
+import { TagSchema, TagFindOptions } from '../Schemas/Tag';
+import NamedError from './NamedError';
+import { validateSchema, camelToSnake } from '../../utils';
 
 export default class Tag extends Resource {
   tagId?: number;
@@ -52,38 +52,38 @@ export default class Tag extends Resource {
     );
     const tag = rows[0];
     if (!tag)
-      throw new NamedError("NotFound", `Unable to find tag with id of ${id}`);
+      throw new NamedError('NotFound', `Unable to find tag with id of ${id}`);
     return new Tag(tag);
   }
 
   static async find(filter, options?) {
-    filter = validateSchema(filter, TagSchema, { presence: "optional" });
+    filter = validateSchema(filter, TagSchema, { presence: 'optional' });
 
     if (filter.errors)
       throw new NamedError(
-        "Client",
-        "Unable to validate find filter",
+        'Client',
+        'Unable to validate find filter',
         filter.errors
       );
 
     options = validateSchema(options || {}, TagFindOptions, {
-      presence: "optional"
+      presence: 'optional',
     });
 
     if (options.errors)
       throw new NamedError(
-        "Client",
-        "Unable to validate find options",
+        'Client',
+        'Unable to validate find options',
         options.errors
       );
 
     const conditions = Object.keys(filter.value).length
-      ? "WHERE " +
+      ? 'WHERE ' +
         Object.keys(filter.value)
           .map((key, i) => `c.${camelToSnake(key)} = $${i + 3}`)
-          .join(" AND ")
-      : "";
-    console.log("conditions", conditions);
+          .join(' AND ')
+      : '';
+    console.log('conditions', conditions);
     const { rows } = await client.query(
       `
         select tag_id "tagId", tag
@@ -96,10 +96,10 @@ export default class Tag extends Resource {
       [
         options.value.limit,
         options.value.offset,
-        ...Object.values(filter.value)
+        ...Object.values(filter.value),
       ]
     );
-    return rows.map(t => new Tag(t));
+    return rows.map((t) => new Tag(t));
   }
 
   // async delete() {

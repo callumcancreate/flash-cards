@@ -1,5 +1,5 @@
-import React, { MouseEvent } from "react";
-import "./Hamburger.scss";
+import React, { MouseEvent } from 'react';
+import './Hamburger.scss';
 
 interface Props {
   onClick: (e: MouseEvent) => any;

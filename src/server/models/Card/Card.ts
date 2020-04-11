@@ -1,18 +1,18 @@
-import client from "../../db";
-import Resource from "../Resource";
-import CardType from "../../../types/Card";
-import TagType from "../../../types/Tag";
+import client from '../../db';
+import Resource from '../Resource';
+import CardType from '../../../types/Card';
+import TagType from '../../../types/Tag';
 import {
   CardSchema,
   CardFindFilter,
   CardFindOptions,
-} from "../../Schemas/Card";
-import NamedError from "../NamedError";
-import { validateSchema, camelToSnake } from "../../../utils";
-import insertSql from "./insert";
-import updateSql from "./update";
-import findSql from "./find";
-import findByIdSql from "./findById";
+} from '../../Schemas/Card';
+import NamedError from '../NamedError';
+import { validateSchema, camelToSnake } from '../../../utils';
+import insertSql from './insert';
+import updateSql from './update';
+import findSql from './find';
+import findByIdSql from './findById';
 
 export default class Card extends Resource {
   cardId?: number;
@@ -29,27 +29,27 @@ export default class Card extends Resource {
   async _insert() {
     try {
       const { tags, front, back, hint } = this;
-      await client.query("BEGIN");
+      await client.query('BEGIN');
       const { rows } = await client.query(insertSql, [
         front,
         back,
         hint,
         tags.map((t) => t.tag),
       ]);
-      await client.query("COMMIT");
+      await client.query('COMMIT');
       this.cardId = rows[0].cardId;
       this.tags = rows[0].tags;
       return this;
     } catch (e) {
       console.log(e);
-      await client.query("ROLLBACK");
+      await client.query('ROLLBACK');
       throw e;
     }
   }
 
   async _put() {
     try {
-      await client.query("BEGIN");
+      await client.query('BEGIN');
       const { tags, front, back, hint, cardId } = this;
       const { rows, rowCount } = await client.query(updateSql, [
         front,
@@ -58,13 +58,13 @@ export default class Card extends Resource {
         cardId,
         tags.map((t) => t.tag),
       ]);
-      if (!rowCount) throw new NamedError("Server", "Something went wrong");
-      await client.query("COMMIT");
+      if (!rowCount) throw new NamedError('Server', 'Something went wrong');
+      await client.query('COMMIT');
       this.tags = rows[0].tags;
 
       return this;
     } catch (e) {
-      await client.query("ROLLBACK");
+      await client.query('ROLLBACK');
       console.log(e);
       throw e;
     }
@@ -75,32 +75,32 @@ export default class Card extends Resource {
     const cards = await client.query(findByIdSql, [id]);
     const card = cards.rows[0];
     if (!card)
-      throw new NamedError("NotFound", `Unable to find card with id of ${id}`);
+      throw new NamedError('NotFound', `Unable to find card with id of ${id}`);
     return new Card(card);
   }
 
   static async find(config) {
     const { tagsAll, tagsNone } = config;
-    if (typeof tagsAll === "string") config.tagsAll = [config.tagsAll];
-    if (typeof tagsNone === "string") config.tagsNone = [config.tagsNone];
+    if (typeof tagsAll === 'string') config.tagsAll = [config.tagsAll];
+    if (typeof tagsNone === 'string') config.tagsNone = [config.tagsNone];
     const filter = validateSchema(config, CardFindFilter, {
-      presence: "optional",
+      presence: 'optional',
     });
     const options = validateSchema(config, CardFindOptions, {
-      presence: "optional",
+      presence: 'optional',
     });
 
     if (filter.errors)
       throw new NamedError(
-        "Client",
-        "Unable to validate find filter",
+        'Client',
+        'Unable to validate find filter',
         filter.errors
       );
 
     if (options.errors)
       throw new NamedError(
-        "Client",
-        "Unable to validate find options",
+        'Client',
+        'Unable to validate find options',
         options.errors
       );
 

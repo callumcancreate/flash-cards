@@ -1,7 +1,7 @@
-import { asyncCatchWrapper } from "../../utils";
-import Category from "../models/Category";
-import Card from "../models/Card";
-import NamedError from "../models/NamedError";
+import { asyncCatchWrapper } from '../../utils';
+import Category from '../models/Category';
+import Card from '../models/Card';
+import NamedError from '../models/NamedError';
 
 export const createCategory = asyncCatchWrapper(async (req, res) => {
   const category = new Category(req.body);
@@ -29,7 +29,7 @@ export const updateCategory = asyncCatchWrapper(async (req, res) => {
   const category = await Category.findById(req.params.categoryId);
   if (!category)
     throw new NamedError(
-      "NotFound",
+      'NotFound',
       `Unable to find category with id ${req.params.categoryId}`
     );
   for (let key in req.body) {
@@ -47,7 +47,7 @@ export const deleteCategory = asyncCatchWrapper(async (req, res) => {
 
   if (!count)
     throw new NamedError(
-      "NotFound",
+      'NotFound',
       `Unable to find category with id ${req.params.categoryId}`
     );
   return res.send({ count });

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import serverApi from "../../apis/serverApi";
+import { useEffect, useState } from 'react';
+import serverApi from '../../apis/serverApi';
 
 interface Options {
   secure: boolean;

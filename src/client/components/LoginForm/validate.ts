@@ -1,4 +1,4 @@
-import { isEmail } from "validator";
+import { isEmail } from 'validator';
 export interface Values {
   email: string;
   password: string;
@@ -6,8 +6,8 @@ export interface Values {
 
 const validate = ({ email, password }: Values) => {
   const errors: { email?: string; password?: string } = {};
-  if (!isEmail(email)) errors.email = "Please enter a valid email";
-  if (!password) errors.password = "Please enter a password";
+  if (!isEmail(email)) errors.email = 'Please enter a valid email';
+  if (!password) errors.password = 'Please enter a password';
   return errors;
 };
 

@@ -1,30 +1,30 @@
-import { Name } from "../models/NamedError";
+import { Name } from '../models/NamedError';
 
 export default function errorHandler(e, req, res, next) {
   switch (e.name as Name) {
     // Custom errors
-    case "Authorization":
+    case 'Authorization':
       e.status = 403;
-      if (!e.error) e.error = "Unauthorized request";
+      if (!e.error) e.error = 'Unauthorized request';
       break;
-    case "NotFound":
+    case 'NotFound':
       e.status = 404;
-      if (!e.error) e.error = "Unable to find resource";
+      if (!e.error) e.error = 'Unable to find resource';
       break;
-    case "Client":
+    case 'Client':
       e.status = 400;
       break;
 
     // System errors
-    case "EvalEror":
-    case "InternalError":
-    case "RangeError":
-    case "SyntaxError":
-    case "TypeError":
-    case "URIError":
+    case 'EvalEror':
+    case 'InternalError':
+    case 'RangeError':
+    case 'SyntaxError':
+    case 'TypeError':
+    case 'URIError':
     default:
       e.status = 500;
-      e.error = "Internal server error";
+      e.error = 'Internal server error';
   }
   console.log(e);
   res.status(e.status).send({ error: e.error, errors: e.errors });

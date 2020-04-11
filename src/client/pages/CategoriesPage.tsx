@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import Layout from "../components/Layout";
-import useResource from "../hooks/useResource";
-import ErrorMessage from "../components/ErrorMessage";
-import CategoryList from "../components/CategoryList";
-import "./HomePage.scss";
+import React, { useEffect, useState } from 'react';
+import Layout from '../components/Layout';
+import useResource from '../hooks/useResource';
+import ErrorMessage from '../components/ErrorMessage';
+import CategoryList from '../components/CategoryList';
+import './HomePage.scss';
 
 const HomePage = () => {
-  const [data, error, isLoading] = useResource("/categories", {});
+  const [data, error, isLoading] = useResource('/categories', {});
   const categories = data.categories || [];
   return (
     <Layout>

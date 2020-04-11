@@ -1,32 +1,32 @@
-import React, { useContext } from "react";
-import { Formik, Form } from "formik";
-import validate from "./validate";
-import Loader from "../Loader";
-import Input from "../form-inputs/Input";
-import { AuthContext } from "../Auth";
-import "./LoginForm.scss";
-import { Redirect } from "react-router-dom";
-import { Values } from "./validate";
-import api from "../../../apis/serverApi";
+import React, { useContext } from 'react';
+import { Formik, Form } from 'formik';
+import validate from './validate';
+import Loader from '../Loader';
+import Input from '../form-inputs/Input';
+import { AuthContext } from '../Auth';
+import './LoginForm.scss';
+import { Redirect } from 'react-router-dom';
+import { Values } from './validate';
+import api from '../../../apis/serverApi';
 
 interface Props {
   initialValues?: Values;
 }
 
 const LoginForm: React.FC<Props> = ({
-  initialValues = { email: "", password: "" },
+  initialValues = { email: '', password: '' },
 }) => {
   const { user, login } = useContext(AuthContext);
   if (user) return <Redirect to="/" />;
 
   const onSubmit = async (values: Values, actions) => {
     try {
-      const { data } = await api.open.post("/users/login", values);
+      const { data } = await api.open.post('/users/login', values);
       login(data);
     } catch (e) {
       console.error(e);
       actions.setErrors({
-        password: "Unable to login. Please check your email or password.",
+        password: 'Unable to login. Please check your email or password.',
       });
       actions.setSubmitting(false);
     }

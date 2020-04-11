@@ -1,14 +1,14 @@
-import client from "../../db";
-import Resource from "../Resource";
-import CategoryType from "../../../types/Category";
-import TagType from "../../../types/Tag";
-import { CategorySchema } from "../../Schemas/Category";
-import NamedError from "../NamedError";
-import insertSql from "./insert";
-import updateSql from "./update";
-import findSql from "./find";
-import findByIdSql from "./findById";
-import unlinkDeleteSql from "./unlinkDelete";
+import client from '../../db';
+import Resource from '../Resource';
+import CategoryType from '../../../types/Category';
+import TagType from '../../../types/Tag';
+import { CategorySchema } from '../../Schemas/Category';
+import NamedError from '../NamedError';
+import insertSql from './insert';
+import updateSql from './update';
+import findSql from './find';
+import findByIdSql from './findById';
+import unlinkDeleteSql from './unlinkDelete';
 
 export default class Category extends Resource {
   categoryId?: number;
@@ -26,31 +26,31 @@ export default class Category extends Resource {
   async _insert() {
     try {
       const { tags, name, parentId } = this;
-      await client.query("BEGIN");
+      await client.query('BEGIN');
       const { rowCount, rows } = await client.query(insertSql, [
         parentId,
         name,
         tags.map((v) => v.tag),
       ]);
-      await client.query("COMMIT");
+      await client.query('COMMIT');
       this.tags = rows[0].tags;
       this.categoryId = rows[0].category_id;
       return rows[0];
     } catch (e) {
-      await client.query("ROLLBACK");
+      await client.query('ROLLBACK');
       if (
-        e.constraint === "unique_name" ||
-        e.constraint === "unique_name_null_parent"
+        e.constraint === 'unique_name' ||
+        e.constraint === 'unique_name_null_parent'
       )
         //categories_name_key
-        throw new NamedError("Client", "Category name must be unique");
+        throw new NamedError('Client', 'Category name must be unique');
       throw e;
     }
   }
 
   async _put() {
     try {
-      await client.query("BEGIN");
+      await client.query('BEGIN');
       const { tags, name, categoryId, parentId } = this;
       const { rows, rowCount } = await client.query(updateSql, [
         parentId,
@@ -59,20 +59,20 @@ export default class Category extends Resource {
         tags.map((t) => t.tag),
       ]);
 
-      if (!rowCount) throw new NamedError("Server", "Something went wrong");
-      await client.query("COMMIT");
+      if (!rowCount) throw new NamedError('Server', 'Something went wrong');
+      await client.query('COMMIT');
       for (let key in rows[0]) {
         this[key] = rows[0][key];
       }
       return this;
     } catch (e) {
-      await client.query("ROLLBACK");
+      await client.query('ROLLBACK');
       if (
-        e.constraint === "unique_name" ||
-        e.constraint === "unique_name_null_parent"
+        e.constraint === 'unique_name' ||
+        e.constraint === 'unique_name_null_parent'
       )
         //categories_name_key
-        throw new NamedError("Client", "Category name must be unique");
+        throw new NamedError('Client', 'Category name must be unique');
       console.log(e);
       throw e;
     }
@@ -84,7 +84,7 @@ export default class Category extends Resource {
     const category = rows[0];
     if (!category)
       throw new NamedError(
-        "NotFound",
+        'NotFound',
         `Unable to find category with id of ${id}`
       );
     return new Category(category);
@@ -126,7 +126,7 @@ export default class Category extends Resource {
   static async deleteById(id) {
     const {
       rowCount,
-    } = await client.query("DELETE FROM categories WHERE category_id = $1", [
+    } = await client.query('DELETE FROM categories WHERE category_id = $1', [
       id,
     ]);
     return rowCount;

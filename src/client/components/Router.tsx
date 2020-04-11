@@ -1,8 +1,8 @@
-import React from "react";
-import { Route, Switch, Redirect } from "react-router-dom";
-import AuthRoute from "./AuthRoute";
-import CategoriesPage from "../pages/CategoriesPage";
-import LoginPage from "../pages/LoginPage";
+import React from 'react';
+import { Route, Switch, Redirect } from 'react-router-dom';
+import AuthRoute from './AuthRoute';
+import CategoriesPage from '../pages/CategoriesPage';
+import LoginPage from '../pages/LoginPage';
 
 const Router = () => (
   <Switch>

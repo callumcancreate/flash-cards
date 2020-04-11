@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import "./CircleMenu.scss";
+import React, { useState } from 'react';
+import './CircleMenu.scss';
 
 interface Props {
   isOpen: boolean;
@@ -9,9 +9,9 @@ interface Props {
 const CircleMenu: React.FC<Props> = ({ isOpen, onClick }) => {
   return (
     <div
-      className={`circle-menu${isOpen ? " open" : ""}`}
+      className={`circle-menu${isOpen ? ' open' : ''}`}
       onClick={onClick}
-      style={{ top: "3%", right: "3%" }}
+      style={{ top: '3%', right: '3%' }}
     >
       <div className="bar1" />
       <div className="bar2" />
