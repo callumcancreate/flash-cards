@@ -1,14 +1,19 @@
 import React from "react";
-import { useField } from "formik";
+import { useField, FieldInputProps } from "formik";
 import ErrorMessage from "../ErrorMessage";
+
+interface Props extends FieldInputProps<""> {
+  label?: string;
+  skinny?: boolean;
+  onChange: (e: React.ChangeEvent<any>, ...args: any[]) => void;
+}
 
 const FormGroupWrap = ({ isWrapped, children }) =>
   isWrapped ? <div className="form-group">{children}</div> : <>{children}</>;
 
-const Input = ({ label, onChange, skinny, ...props }) => {
+const Input: React.FC<Props> = ({ label, onChange, skinny, ...props }) => {
   let [field, meta, helpers] = useField(props);
-  if (onChange) field.onChange = e => onChange(e, helpers);
-  if (props.value) field.value = props.value;
+  if (onChange) field.onChange = (e) => onChange(e, helpers);
 
   return (
     <FormGroupWrap isWrapped={!skinny}>
