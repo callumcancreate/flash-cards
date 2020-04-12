@@ -4,22 +4,22 @@ import './CircleMenu.scss';
 interface Props {
   isOpen: boolean;
   onClick: (event?: React.MouseEvent) => void;
+  onKeyDown: (event?: React.KeyboardEvent) => void;
 }
 
-const CircleMenu: React.FC<Props> = ({ isOpen, onClick }) => {
+const CircleMenu: React.FC<Props> = ({ isOpen, onClick, onKeyDown }) => {
   return (
-    <div
+    <button
+      type="button"
       className={`circle-menu${isOpen ? ' open' : ''}`}
       onClick={onClick}
       style={{ top: '3%', right: '3%' }}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => console.log(e)} // TODO: add listener
+      onKeyDown={onKeyDown}
     >
       <div className="bar1" />
       <div className="bar2" />
       <div className="bar3" />
-    </div>
+    </button>
   );
 };
 
