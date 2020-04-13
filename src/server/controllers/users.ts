@@ -100,11 +100,13 @@ export const authRefresh = asyncCatchWrapper(async (req, res) => {
 
 export const logout = asyncCatchWrapper(async (req, res) => {
   const { refreshToken } = req.cookies;
-  const {
-    rowCount
-  } = await pool.query('delete from refresh_tokens where token = $1', [
-    refreshToken
-  ]);
-  if (!rowCount) throw new Error();
-  res.cookie('jwt', '').cookie('refreshToken', '').send();
+  if (refreshToken) {
+    await pool.query('delete from refresh_tokens where token = $1', [
+      refreshToken
+    ]);
+  }
+  res
+    .cookie('jwt', '', { maxAge: 0 })
+    .cookie('refreshToken', '', { maxAge: 0 })
+    .send();
 });

@@ -5,16 +5,25 @@ export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isLoading, setLoading] = useState(true);
   // TODO: useeffect to set initial state
   // TODO: Login functions
+
+  useEffect(() => {
+    if (!isLoading)
+      document.querySelector('#load-overlay').classList.add('hidden');
+  }, [isLoading]);
+
   useEffect(() => {
     (async () => {
       const csrf = JSON.parse(localStorage.getItem('csrf'));
-      if (!csrf) return;
-      const {
-        data: { user: profile }
-      } = await api.secure.get('/users/me');
-      setUser(profile);
+      if (csrf) {
+        const {
+          data: { user: profile }
+        } = await api.secure.get('/users/me');
+        setUser(profile);
+      }
+      setLoading(false);
     })();
   }, []);
 
@@ -23,7 +32,7 @@ export const AuthProvider = ({ children }) => {
     setUser(data);
   };
   const logout = async () => {
-    await api.secure.get('/auth/logout');
+    await api.secure.get('/users/auth/logout');
     localStorage.removeItem('csrf');
     setUser(null);
   };

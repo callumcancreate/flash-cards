@@ -4,8 +4,9 @@ import setCookie from 'set-cookie-parser';
 import server from '../../../src/server/server';
 import supertest from 'supertest';
 import * as db from '../../db';
-import { users } from '../../mock-data';
+import { users, tokens } from '../../mock-data';
 import User from '../../../src/server/models/User';
+import pool from '../../../src/server/db';
 
 const request = supertest(server);
 let client;
@@ -241,5 +242,27 @@ describe('GET /users/auth/refresh', () => {
     expect(refreshContent.email).toBe(users[1].email);
     expect(refreshContent.type).toBe('REFRESH');
     expect(refreshContent.csrf).toBe(res.body.csrf.refresh);
+  });
+});
+
+describe('GET /users/auth/logout', () => {
+  it('Logs the user out', async () => {
+    const refreshToken = await jwt.sign('nocontent', process.env.JWT_SECRET);
+    await pool.query(
+      'insert into refresh_tokens (user_id, token) values ($1, $2)',
+      [1, refreshToken]
+    );
+
+    const res = await request
+      .get('/api/v1/users/auth/logout')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
+      .expect(200);
+
+    const cookies = setCookie.parse(res, { map: true });
+    expect(cookies.jwt.value).toBe('');
+    expect(cookies.jwt.maxAge).toBe(0);
+    expect(cookies.refreshToken.value).toBe('');
+    expect(cookies.refreshToken.maxAge).toBe(0);
   });
 });
