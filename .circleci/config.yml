@@ -23,6 +23,7 @@ jobs:
       - image: circleci/node:dubnium
     steps:
       - checkout
+      - add_ssh_keys
       - run: npm install
       - run: npm run build
       - run: rm -rf node_modules
