@@ -35,9 +35,9 @@ workflows:
   build-and-test:
     jobs:
       - test
-      - build-and-deploy:
-          filters:
-            branches:
-              only: circle-deploy
-          requires:
-            - test
+      # - build-and-deploy:
+      #     filters:
+      #       branches:
+      #         only: circle-deploy
+      #     requires:
+      #       - test
