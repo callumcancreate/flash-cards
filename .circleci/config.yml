@@ -24,7 +24,6 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys
-      - echo
       - run: npm install
       - run: npm run build
       - run: rm -rf node_modules
