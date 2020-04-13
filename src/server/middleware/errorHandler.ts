@@ -15,6 +15,15 @@ export default function errorHandler(e, req, res, next) {
       e.status = 400;
       break;
 
+    // JWT errors
+    case 'TokenExpiredError':
+      e.status = 401;
+      break;
+
+    case 'JsonWebTokenError':
+      e.status = 403;
+      e.error = 'Invalid token';
+      break;
     // System errors
     case 'EvalEror':
     case 'InternalError':

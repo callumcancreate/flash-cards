@@ -20,3 +20,8 @@ export const CreateUserSchema = Joi.object({
   firstName: firstName.optional(),
   lastName: lastName.optional()
 });
+
+export const LoginSchema = Joi.object({
+  email,
+  password
+});

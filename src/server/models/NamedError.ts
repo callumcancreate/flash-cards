@@ -8,7 +8,9 @@ export type Name =
   | 'RangeError'
   | 'SyntaxError'
   | 'TypeError'
-  | 'URIError';
+  | 'URIError'
+  | 'TokenExpiredError'
+  | 'JsonWebTokenError';
 
 class NamedError extends Error {
   name: Name;
