@@ -2,7 +2,7 @@ import express from 'express';
 import * as c from '../controllers/categories';
 import { getCards } from '../controllers/cards';
 import validateBody from '../middleware/validateBody';
-import { PatchCategorySchema } from '../Schemas/Category';
+import { PatchCategorySchema } from '../schemas/Category';
 
 const router = express.Router();
 

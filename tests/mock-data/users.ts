@@ -4,20 +4,26 @@ export default {
     firstName: 'John',
     lastName: 'Smith',
     email: 'john@email.com',
-    isDeleted: false,
+    password: 'johnspassword',
+    isVerified: true,
+    isDeleted: false
   },
   2: {
     userId: 2,
     firstName: 'Jane',
     lastName: 'Smith',
     email: 'janes@email.com',
-    isDeleted: false,
+    password: 'janespassword',
+    isVerified: false,
+    isDeleted: false
   },
   3: {
     userId: 3,
     firstName: 'Jane',
     lastName: 'Doe',
     email: 'janed@email.com',
-    isDeleted: true,
-  },
+    password: 'janedoespassword',
+    isVerified: true,
+    isDeleted: true
+  }
 };

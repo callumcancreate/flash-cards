@@ -5,7 +5,7 @@ import {
   CardSchema,
   CardFindFilter,
   CardFindOptions
-} from '../../Schemas/Card';
+} from '../../schemas/Card';
 import NamedError from '../NamedError';
 import { validateSchema } from '../../../utils';
 import insertSql from './insert';

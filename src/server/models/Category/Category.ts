@@ -1,8 +1,8 @@
-import client from '../../db';
+import pool from '../../db';
 import Resource from '../Resource';
 import CategoryType from '../../../types/Category';
 import TagType from '../../../types/Tag';
-import { CategorySchema } from '../../Schemas/Category';
+import { CategorySchema } from '../../schemas/Category';
 import NamedError from '../NamedError';
 import insertSql from './insert';
 import updateSql from './update';
@@ -10,7 +10,7 @@ import findSql from './find';
 import findByIdSql from './findById';
 import unlinkDeleteSql from './unlinkDelete';
 
-export default class Category extends Resource {
+export default class Category extends Resource implements CategoryType {
   categoryId?: number;
 
   parentId?: number;
@@ -26,18 +26,18 @@ export default class Category extends Resource {
   async insert() {
     try {
       const { tags, name, parentId } = this;
-      await client.query('BEGIN');
-      const { rows } = await client.query(insertSql, [
+      await pool.query('BEGIN');
+      const { rows } = await pool.query(insertSql, [
         parentId,
         name,
-        tags.map((v) => v.tag),
+        tags.map((v) => v.tag)
       ]);
-      await client.query('COMMIT');
+      await pool.query('COMMIT');
       this.tags = rows[0].tags;
       this.categoryId = rows[0].category_id;
       return rows[0];
     } catch (e) {
-      await client.query('ROLLBACK');
+      await pool.query('ROLLBACK');
       if (
         e.constraint === 'unique_name' ||
         e.constraint === 'unique_name_null_parent'
@@ -49,23 +49,23 @@ export default class Category extends Resource {
 
   async put() {
     try {
-      await client.query('BEGIN');
+      await pool.query('BEGIN');
       const { tags, name, categoryId, parentId } = this;
-      const { rows, rowCount } = await client.query(updateSql, [
+      const { rows, rowCount } = await pool.query(updateSql, [
         parentId,
         name,
         categoryId,
-        tags.map((t) => t.tag),
+        tags.map((t) => t.tag)
       ]);
 
       if (!rowCount) throw new NamedError('Server', 'Something went wrong');
-      await client.query('COMMIT');
+      await pool.query('COMMIT');
       Object.keys(rows[0]).forEach((key) => {
         this[key] = rows[0][key];
       });
       return this;
     } catch (e) {
-      await client.query('ROLLBACK');
+      await pool.query('ROLLBACK');
       if (
         e.constraint === 'unique_name' ||
         e.constraint === 'unique_name_null_parent'
@@ -78,7 +78,7 @@ export default class Category extends Resource {
 
   static async findById(_id) {
     const id = parseInt(_id, 10);
-    const { rows } = await client.query(findByIdSql, [id]);
+    const { rows } = await pool.query(findByIdSql, [id]);
     const category = rows[0];
     if (!category)
       throw new NamedError(
@@ -89,7 +89,7 @@ export default class Category extends Resource {
   }
 
   static async find(filter) {
-    const { rows } = await client.query(findSql, [filter.root]);
+    const { rows } = await pool.query(findSql, [filter.root]);
     const map = {};
 
     rows.forEach((cat) =>
@@ -106,9 +106,9 @@ export default class Category extends Resource {
       const values: CategoryType[] = Object.values(_map);
       return values.length
         ? values.map(
-          (v) =>
-            new Category({ ...v, children: toArrayStructure(v.children) })
-        )
+            (v) =>
+              new Category({ ...v, children: toArrayStructure(v.children) })
+          )
         : [];
     };
 
@@ -116,16 +116,14 @@ export default class Category extends Resource {
   }
 
   static async unlinkAndDeleteById(id) {
-    const { rowCount } = await client.query(unlinkDeleteSql, [id]);
+    const { rowCount } = await pool.query(unlinkDeleteSql, [id]);
     return rowCount;
   }
 
   static async deleteById(id) {
     const {
-      rowCount,
-    } = await client.query('DELETE FROM categories WHERE category_id = $1', [
-      id,
-    ]);
+      rowCount
+    } = await pool.query('DELETE FROM categories WHERE category_id = $1', [id]);
     return rowCount;
   }
 

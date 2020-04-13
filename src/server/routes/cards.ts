@@ -1,7 +1,7 @@
 import express from 'express';
 import * as c from '../controllers/cards';
 import validateBody from '../middleware/validateBody';
-import { PatchCardSchema } from '../Schemas/Card';
+import { PatchCardSchema } from '../schemas/Card';
 
 const router = express.Router();
 

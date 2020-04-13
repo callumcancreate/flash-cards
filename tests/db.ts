@@ -57,7 +57,7 @@ export const seedCards = async (client) =>
           async (tag) =>
             await client.query('INSERT INTO card_tags VALUES ($1, $2)', [
               card.cardId,
-              tag.tagId,
+              tag.tagId
             ])
         )
       );
@@ -76,7 +76,7 @@ export const seedCategories = async (client) =>
           async (tag) =>
             await client.query('INSERT INTO category_tags VALUES ($1, $2)', [
               cat.categoryId,
-              tag.tagId,
+              tag.tagId
             ])
         )
       );
@@ -88,8 +88,18 @@ export const seedUsers = async (client) =>
     Object.values(users).map(
       async (u) =>
         await client.query(
-          'INSERT INTO users (first_name, last_name, email, is_deleted) VALUES ($1, $2, $3, $4)',
-          [u.firstName, u.lastName, u.email, u.isDeleted]
+          `
+            INSERT INTO users (first_name, last_name, email, password, is_verified, is_deleted) 
+            VALUES ($1, $2, $3, $4, $5, $6)
+          `,
+          [
+            u.firstName,
+            u.lastName,
+            u.email,
+            u.password,
+            u.isVerified,
+            u.isDeleted
+          ]
         )
     )
   );

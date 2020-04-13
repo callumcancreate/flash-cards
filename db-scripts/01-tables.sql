@@ -1,8 +1,10 @@
 CREATE TABLE public.users (
   "user_id" serial PRIMARY KEY,
-  "email" text NOT NULL,
-  "first_name" text NOT NULL,
-  "last_name" text NOT NULL,
+  "email" text UNIQUE NOT NULL,
+  "password" text NOT NULL,
+  "first_name" text,
+  "last_name" text,
+  "is_verified" boolean DEFAULT FALSE,
   "is_deleted" boolean DEFAULT FALSE
 );
 

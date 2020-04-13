@@ -1,6 +1,6 @@
 import client from '../db';
 import Resource from './Resource';
-import { TagSchema, TagFindOptions } from '../Schemas/Tag';
+import { TagSchema, TagFindOptions } from '../schemas/Tag';
 import NamedError from './NamedError';
 import { validateSchema, camelToSnake } from '../../utils';
 
