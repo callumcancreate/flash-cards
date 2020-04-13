@@ -3,7 +3,7 @@ import { Name } from '../models/NamedError';
 export default function errorHandler(e, req, res, next) {
   switch (e.name as Name) {
     // Custom errors
-    case 'Authorization':
+    case 'Auth':
       e.status = 403;
       if (!e.error) e.error = 'Unauthorized request';
       break;

@@ -1,5 +1,5 @@
 export type Name =
-  | 'Authorization'
+  | 'Auth'
   | 'NotFound'
   | 'Client'
   | 'Server'

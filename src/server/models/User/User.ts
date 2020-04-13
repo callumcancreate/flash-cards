@@ -21,9 +21,9 @@ class User extends Resource implements UserType {
 
   static async findByCredentials({ email, password }) {
     const user = await User.findByEmail(email);
+    if (!user) return null;
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      throw new NamedError('Authorization', 'Invalid email or password');
+    if (!isMatch) throw new NamedError('Auth', 'Invalid email or password');
     return user;
   }
 
@@ -61,7 +61,8 @@ class User extends Resource implements UserType {
 
   static async findByEmail(email) {
     const {
-      rows: [user]
+      rows: [user],
+      rowCount
     } = await pool.query(
       `
         select
@@ -77,7 +78,7 @@ class User extends Resource implements UserType {
       `,
       [email]
     );
-    return new User(user);
+    return rowCount ? new User(user) : null;
   }
 
   static async getToken(

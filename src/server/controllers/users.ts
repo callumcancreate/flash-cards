@@ -8,7 +8,8 @@ import pool from '../db';
 
 const bearerCookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
+  secure:
+    process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test',
   sameSite: true,
   path: '/api'
 };
@@ -19,7 +20,12 @@ const refreshCookieOptions = {
 };
 
 const getTokens = async (userId, email) => {
-  const [bearer, csrfBearer] = await User.getToken(userId, email, 60, 'BEARER');
+  const [bearer, csrfBearer] = await User.getToken(
+    userId,
+    email,
+    60 * 15,
+    'BEARER'
+  );
   const [refresh, csrfRefresh] = await User.getToken(
     userId,
     email,
@@ -54,6 +60,7 @@ export const login = asyncCatchWrapper(async (req, res) => {
     throw new NamedError('Client', 'Unable to validate request', errors);
 
   const user = await User.findByCredentials(value);
+  if (!user) throw new NamedError('Auth', 'Invalid email or password');
   const { tokens, csrf } = await getTokens(user.userId, user.email);
   await pool.query(
     'insert into refresh_tokens (token, user_id) values ($1, $2)',
@@ -79,25 +86,23 @@ export const authRefresh = asyncCatchWrapper(async (req, res) => {
     throw new NamedError('JsonWebTokenError', '');
 
   const {
-    rows: [oldToken]
+    rowCount
   } = await pool.query(
-    `
-      select r.token from
-      refresh_tokens r inner join users u on r.user_id = u.user_id
-      where u.email = $1 and u.user_id = $2 and r.token = $3
-    `,
-    [email, sub, token]
+    'delete from refresh_tokens r where r.token = $1 and r.user_id = $2',
+    [token, sub]
   );
 
-  if (!oldToken) throw new NamedError('Authorization', 'Invalid token');
+  if (!rowCount) throw new NamedError('Auth', 'Invalid token');
 
   // Generate new tokens
   const { tokens, csrf } = await getTokens(sub, email);
 
-  await pool.query('delete from refresh_tokens r where r.user_id = $1', [sub]);
   await pool.query(
     'insert into refresh_tokens (token, user_id) values ($1, $2)',
     [tokens.refresh, sub]
   );
-  res.send({ csrf });
+  res
+    .cookie('jwt', tokens.bearer, bearerCookieOptions)
+    .cookie('refreshToken', tokens.refresh, refreshCookieOptions)
+    .send({ csrf });
 });

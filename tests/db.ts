@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import path from 'path';
 import fs from 'fs';
 import pool from '../src/server/db';
@@ -85,23 +86,16 @@ export const seedCategories = async (client) =>
 
 export const seedUsers = async (client) =>
   await Promise.all(
-    Object.values(users).map(
-      async (u) =>
-        await client.query(
-          `
+    Object.values(users).map(async (u) => {
+      const hash = await bcrypt.hash(u.password, 10);
+      await client.query(
+        `
             INSERT INTO users (first_name, last_name, email, password, is_verified, is_deleted) 
             VALUES ($1, $2, $3, $4, $5, $6)
           `,
-          [
-            u.firstName,
-            u.lastName,
-            u.email,
-            u.password,
-            u.isVerified,
-            u.isDeleted
-          ]
-        )
-    )
+        [u.firstName, u.lastName, u.email, hash, u.isVerified, u.isDeleted]
+      );
+    })
   );
 
 export const seedData = async (client) => {
