@@ -24,13 +24,14 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys
+      - echo
       - run: npm install
       - run: npm run build
       - run: rm -rf node_modules
       - run: npm install --production
-      - run: scp -r node_modules flashcards@callumcancreate.com:~/flash_cards
-      - run: scp -r dist flashcards@callumcancreate.com:~/flash_cards/dist
-      - run: ssh flashcards@callumcancreate.com "sudo systemctl restart flashcards"
+      - run: scp -o StrictHostKeyChecking=no -r node_modules flashcards@callumcancreate.com:~/flash_cards
+      - run: scp -o StrictHostKeyChecking=no -r dist flashcards@callumcancreate.com:~/flash_cards/dist
+      - run: ssh -o StrictHostKeyChecking=no flashcards@callumcancreate.com "sudo systemctl restart flashcards"
 workflows:
   build-and-test:
     jobs:
