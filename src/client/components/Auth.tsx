@@ -22,7 +22,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('csrf', JSON.stringify(csrf));
     setUser(data);
   };
-  const logout = () => {
+  const logout = async () => {
+    await api.secure.get('/auth/logout');
     localStorage.removeItem('csrf');
     setUser(null);
   };

@@ -20,13 +20,8 @@ const refreshCookieOptions = {
 };
 
 const getTokens = async (userId, email) => {
-  const [bearer, csrfBearer] = await User.getToken(userId, email, 5, 'BEARER');
-  const [refresh, csrfRefresh] = await User.getToken(
-    userId,
-    email,
-    60 * 60 * 24 * 7,
-    'REFRESH'
-  );
+  const [bearer, csrfBearer] = await User.getToken(userId, email, 'BEARER');
+  const [refresh, csrfRefresh] = await User.getToken(userId, email, 'REFRESH');
 
   return {
     tokens: { bearer, refresh },
@@ -78,8 +73,6 @@ export const authRefresh = asyncCatchWrapper(async (req, res) => {
     process.env.JWT_SECRET
   );
 
-  console.log('tokenCSRF', tokenCSRF);
-  console.log('auth header', req.headers.authorization);
   if (tokenCSRF !== req.headers.authorization || type !== 'REFRESH')
     throw new NamedError('JsonWebTokenError', '');
 
@@ -103,4 +96,15 @@ export const authRefresh = asyncCatchWrapper(async (req, res) => {
     .cookie('jwt', tokens.bearer, bearerCookieOptions)
     .cookie('refreshToken', tokens.refresh, refreshCookieOptions)
     .send({ csrf });
+});
+
+export const logout = asyncCatchWrapper(async (req, res) => {
+  const { refreshToken } = req.cookies;
+  const {
+    rowCount
+  } = await pool.query('delete from refresh_tokens where token = $1', [
+    refreshToken
+  ]);
+  if (!rowCount) throw new Error();
+  res.cookie('jwt', '').cookie('refreshToken', '').send();
 });

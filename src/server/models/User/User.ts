@@ -81,17 +81,16 @@ class User extends Resource implements UserType {
     return rowCount ? new User(user) : null;
   }
 
-  static async getToken(
-    userId,
-    email,
-    expiry: number,
-    type: 'BEARER' | 'REFRESH'
-  ) {
+  static async getToken(userId, email, type: 'BEARER' | 'REFRESH') {
     const iat = Math.floor(Date.now() / 1000); // NumericDate: seconds since epoch
     const csrf = String(Math.round(Math.random() * 10 ** 10));
+    const expiryTime =
+      type === 'REFRESH'
+        ? parseInt(process.env.REFRESH_TOKEN_EXPIRY, 10) || 60 * 60 * 24 * 7
+        : parseInt(process.env.BEARER_TOKEN_EXPIRY, 10) || 60 * 15;
     const content = {
       iat, // issued at
-      exp: iat + expiry, // expiry
+      exp: iat + expiryTime,
       sub: userId, // subject
       email,
       type,

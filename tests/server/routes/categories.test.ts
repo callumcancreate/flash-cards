@@ -1,7 +1,7 @@
 import server from '../../../src/server/server';
 import supertest from 'supertest';
 import * as db from '../../db';
-import { cards, tags, categories } from '../../mock-data';
+import { cards, tags, categories, tokens } from '../../mock-data';
 
 const request = supertest(server);
 let client;
@@ -39,6 +39,8 @@ describe('POST /categories', () => {
 
     const response = await request
       .post('/api/v1/categories')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send(newCategory)
       .expect(201);
 
@@ -84,12 +86,14 @@ describe('POST /categories', () => {
 
     const response = await request
       .post('/api/v1/categories')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send(newCategory)
       .expect(201);
 
     expect(response.body.category).toMatchObject(newCategory);
 
-    const { rows, rowCount } = await client.query(
+    const { rows } = await client.query(
       `
         select count(tag_id)::int from category_tags
         where category_id = $1
@@ -102,12 +106,16 @@ describe('POST /categories', () => {
   it("Doesn't create category because name and parent id not unique", async () => {
     const r1 = await request
       .post('/api/v1/categories')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send({ name: 'category1', tags: [] })
       .expect(400);
     expect(r1.body.error).not.toBeUndefined();
 
     const r2 = await request
       .post('/api/v1/categories')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send({ name: 'category3', parentId: 1, tags: [] })
       .expect(400);
     expect(r2.body.error).not.toBeUndefined();
@@ -122,6 +130,8 @@ describe('POST /categories', () => {
     const newId = Object.keys(categories).length + 1;
     const r1 = await request
       .post('/api/v1/categories')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send({ name: 'category3', tags: [] })
       .expect(201);
 
@@ -138,7 +148,12 @@ describe('POST /categories', () => {
 
 describe('GET /categories', () => {
   it('Gets categories', async () => {
-    const response = await request.get('/api/v1/categories').send().expect(200);
+    const response = await request
+      .get('/api/v1/categories')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
+      .send()
+      .expect(200);
 
     const expected = [
       {
@@ -167,6 +182,8 @@ describe('GET /categories/:categoryId', () => {
   it('Gets a category by ID', async () => {
     const response1 = await request
       .get('/api/v1/categories/3')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
     const r1 = response1.body.category;
@@ -185,6 +202,8 @@ describe('GET /categories/:categoryId', () => {
 
     const response2 = await request
       .get('/api/v1/categories/1')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
     const r2 = response2.body.category;
@@ -196,16 +215,20 @@ describe('GET /categories/:categoryId', () => {
     expect(r2.tags[1]).toMatchObject({ ...c1.tags[1], isInherited: false });
 
     // Get a category with no tags
-    const response3 = await request
+    const r3 = await request
       .get('/api/v1/categories/5')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
-    expect(response3.body.category).toMatchObject(categories[5]);
+    expect(r3.body.category).toMatchObject(categories[5]);
   });
 
   it("Can't find a category", async () => {
     const response = await request
       .get('/api/v1/categories/999')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(404);
     expect(response.body.error).not.toBeUndefined();
@@ -216,6 +239,8 @@ describe('GET /categories/:categoryId/cards', () => {
   it('Gets cards of a category', async () => {
     const r1 = await request
       .get('/api/v1/categories/3/cards')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
 
@@ -223,6 +248,8 @@ describe('GET /categories/:categoryId/cards', () => {
 
     const r2 = await request
       .get('/api/v1/categories/1/cards')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
 
@@ -247,6 +274,8 @@ describe('PATCH /categories/:categoryId', () => {
     const newTagId = Object.keys(tags).length + 1;
     const response = await request
       .patch('/api/v1/categories/3')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send(modifiedCat)
       .expect(200);
 
@@ -288,6 +317,8 @@ describe('DELETE /categories/:categoryId', () => {
   it('Deletes a category (and its children)', async () => {
     const response = await request
       .delete('/api/v1/categories/3?withChildren=true')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
     expect(response.body.count).toBe(1);
@@ -301,6 +332,8 @@ describe('DELETE /categories/:categoryId', () => {
   it('Unlinks and deletes a category (but not its children)', async () => {
     const response = await request
       .delete('/api/v1/categories/3')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
     expect(response.body.count).toBe(1);
@@ -320,6 +353,8 @@ describe('DELETE /categories/:categoryId', () => {
   it("Can't find a category to delete", async () => {
     const response = await request
       .delete('/api/v1/categories/999')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(404);
     expect(response.body.error).not.toBeUndefined();

@@ -12,13 +12,12 @@ secure.interceptors.request.use(
   (_config) => {
     const config = { ..._config };
     const csrf = JSON.parse(localStorage.getItem('csrf')) || {};
-    config.headers.Authorization =
-      config.url === '/users/auth/refresh' ? csrf.refresh : csrf.bearer;
+    config.headers.Authorization = config.url.match(/^\/users\/auth.*/)
+      ? csrf.refresh
+      : csrf.bearer;
     return config;
   },
-  (e) => {
-    throw e;
-  }
+  (e) => e
 );
 
 secure.interceptors.response.use(
@@ -34,6 +33,7 @@ secure.interceptors.response.use(
       original.headers.Authorization = csrf.bearer;
       return axios(original);
     }
+    throw e;
   }
 );
 export default { open, secure };

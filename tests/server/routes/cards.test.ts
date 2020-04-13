@@ -1,7 +1,7 @@
 import server from '../../../src/server/server';
 import supertest from 'supertest';
 import * as db from '../../db';
-import { cards, tags } from '../../mock-data';
+import { cards, tags, tokens } from '../../mock-data';
 
 const request = supertest(server);
 let client;
@@ -41,6 +41,8 @@ describe('POST /cards', () => {
     const response = await request
       .post('/api/v1/cards')
       .send(newCard)
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .expect(201);
 
     expect(response.body.card).toMatchObject({ ...newCard, cardId: newCardId });
@@ -70,12 +72,22 @@ describe('POST /cards', () => {
 
 describe('GET /cards/:id', () => {
   it('Gets a card by id', async () => {
-    const r1 = await request.get('/api/v1/cards/1').send().expect(200);
+    const r1 = await request
+      .get('/api/v1/cards/1')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
+      .send()
+      .expect(200);
 
     expect(r1.body.card).toMatchObject(cards[1]);
 
     // Gets a card with no tags
-    const r2 = await request.get('/api/v1/cards/7').send().expect(200);
+    const r2 = await request
+      .get('/api/v1/cards/7')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
+      .send()
+      .expect(200);
 
     expect(r2.body.card).toMatchObject(cards[7]);
   });
@@ -83,7 +95,13 @@ describe('GET /cards/:id', () => {
 
 describe('GET /cards', () => {
   it('Gets all cards', async () => {
-    const r1 = await request.get('/api/v1/cards').query({}).send().expect(200);
+    const r1 = await request
+      .get('/api/v1/cards')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
+      .query({})
+      .send()
+      .expect(200);
     expect(r1.body.cards).toMatchObject(Object.values(cards));
   });
 
@@ -99,6 +117,8 @@ describe('GET /cards', () => {
     // expect(expectedCards).toBe(1);
     const r1 = await request
       .get('/api/v1/cards')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .query({
         tagsAll: includedTags.map(({ tag }) => tag), // get cards with tag 1 and 2
         tagsNone: excludedTags.map(({ tag }) => tag)
@@ -112,6 +132,8 @@ describe('GET /cards', () => {
     const r1 = await request
       .get('/api/v1/cards')
       .query({ front: 'samefront' })
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
 
@@ -120,6 +142,8 @@ describe('GET /cards', () => {
     const r2 = await request
       .get('/api/v1/cards')
       .query({ back: 'back1' })
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
 
@@ -128,6 +152,8 @@ describe('GET /cards', () => {
     const r3 = await request
       .get('/api/v1/cards')
       .query({ cardId: 1 })
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
 
@@ -138,6 +164,8 @@ describe('GET /cards', () => {
     const r1 = await request
       .get('/api/v1/cards')
       .query({ limit: 1, offset: 1 })
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
 
@@ -159,6 +187,8 @@ describe('PATCH /cards/:id', () => {
 
     const response = await request
       .patch('/api/v1/cards/3')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send(updatedCard)
       .expect(200);
 
@@ -190,7 +220,12 @@ describe('PATCH /cards/:id', () => {
 
 describe('DELETE /cards/:id', () => {
   it('Deletes a card by id', async () => {
-    await request.delete('/api/v1/cards/1').send().expect(200);
+    await request
+      .delete('/api/v1/cards/1')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
+      .send()
+      .expect(200);
 
     const q1 = await client.query('select * from cards where card_id = 1');
     expect(q1.rowCount).toBe(0);

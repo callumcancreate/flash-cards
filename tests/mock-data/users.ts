@@ -1,4 +1,6 @@
-export default {
+import jwt from 'jsonwebtoken';
+
+export const users = {
   1: {
     userId: 1,
     firstName: 'John',
@@ -26,4 +28,22 @@ export default {
     isVerified: true,
     isDeleted: true
   }
+};
+
+const secret = process.env.JWT_SECRET;
+const csrf = 'csrf';
+const type = 'BEARER';
+export const tokens = {
+  1: jwt.sign(
+    { sub: users[1].userId, email: users[1].email, csrf, type },
+    secret
+  ),
+  2: jwt.sign(
+    { sub: users[2].userId, email: users[2].email, csrf, type },
+    secret
+  ),
+  3: jwt.sign(
+    { sub: users[3].userId, email: users[3].email, csrf, type },
+    secret
+  )
 };

@@ -184,13 +184,11 @@ describe('GET /users/auth/refresh', () => {
     const [refreshToken, csrf] = await User.getToken(
       users[1].userId,
       users[1].email,
-      60,
       'REFRESH'
     );
     const [bearerToken] = await User.getToken(
       users[1].userId,
       users[1].email,
-      60,
       'BEARER'
     );
 

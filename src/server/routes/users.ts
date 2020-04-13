@@ -8,5 +8,6 @@ router.post('/', c.register);
 router.post('/login', c.login);
 router.get('/me', auth, c.getMyProfile);
 router.get('/auth/refresh', c.authRefresh);
+router.get('/auth/logout', auth, c.logout);
 
 export default router;
