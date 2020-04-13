@@ -8,7 +8,8 @@ import errorHandler from './middleware/errorHandler';
 import renderApp from './middleware/renderApp';
 
 const server = express();
-const buildPath = path.join(__dirname, '../dist');
+const buildPath = path.join('dist/public');
+console.log(buildPath);
 
 server.use(cookieParser());
 server.use(bodyParser.json());
