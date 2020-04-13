@@ -1,19 +1,24 @@
 export type Name =
-  | "Authorization"
-  | "NotFound"
-  | "Client"
-  | "Server"
-  | "EvalEror"
-  | "InternalError"
-  | "RangeError"
-  | "SyntaxError"
-  | "TypeError"
-  | "URIError";
+  | 'Auth'
+  | 'NotFound'
+  | 'Client'
+  | 'Server'
+  | 'EvalEror'
+  | 'InternalError'
+  | 'RangeError'
+  | 'SyntaxError'
+  | 'TypeError'
+  | 'URIError'
+  | 'TokenExpiredError'
+  | 'JsonWebTokenError';
 
 class NamedError extends Error {
   name: Name;
+
   error: string;
+
   errors?: object;
+
   date: Date;
 
   constructor(name: Name, error: string, errors?, ...args) {

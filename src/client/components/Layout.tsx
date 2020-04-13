@@ -1,7 +1,6 @@
-import React from "react";
-import Nav from "./Nav";
-import Footer from "./Footer";
-import history from "../constants/history";
+import React from 'react';
+import Nav from './Nav';
+import Footer from './Footer';
 
 interface Props {
   header?: JSX.Element;
@@ -15,16 +14,11 @@ const Layout: React.FC<Props> = ({
   footer,
   children,
   noFooter,
-  noHeader
+  noHeader,
 }) => {
-  const defaultLinks = [
-    { onClick: () => history.push("/"), label: "Home" },
-    { onClick: () => history.push("/login"), label: "Login" }
-  ];
-
   return (
     <>
-      <header>{noHeader || header || <Nav links={defaultLinks} />}</header>
+      <header>{noHeader || header || <Nav />}</header>
       <main>
         <div>{children}</div>
       </main>

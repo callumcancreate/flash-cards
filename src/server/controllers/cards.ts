@@ -1,6 +1,6 @@
-import Card from "../models/Card";
-import { asyncCatchWrapper, validateSchema } from "../../utils";
-import NamedError from "../models/NamedError";
+import Card from '../models/Card';
+import { asyncCatchWrapper } from '../../utils';
+import NamedError from '../models/NamedError';
 
 export const createCard = asyncCatchWrapper(async (req, res) => {
   const card = await new Card(req.body).save();
@@ -21,12 +21,12 @@ export const updateCard = asyncCatchWrapper(async (req, res) => {
   const card = await Card.findById(req.params.cardId);
   if (!card)
     throw new NamedError(
-      "NotFound",
+      'NotFound',
       `Unable to find card with id ${req.params.cardId}`
     );
-  for (let key in req.body) {
+  Object.keys(req.body).forEach((key) => {
     card[key] = req.body[key];
-  }
+  });
   await card.save();
   return res.send({ card });
 });
@@ -35,7 +35,7 @@ export const deleteCard = asyncCatchWrapper(async (req, res) => {
   const count = await Card.deleteById(req.params.cardId);
   if (!count)
     throw new NamedError(
-      "NotFound",
+      'NotFound',
       `Unable to find card with id ${req.params.cardId}`
     );
   return res.send({ count });

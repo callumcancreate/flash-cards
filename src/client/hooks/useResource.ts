@@ -1,7 +1,14 @@
-import { useEffect, useState } from "react";
-import api from "../../apis/serverApi";
+import { useEffect, useState } from 'react';
+import serverApi from '../../apis/serverApi';
 
-export default function useResource(url, defaultData = {}) {
+interface Options {
+  secure: boolean;
+}
+const defaultOptions: Options = { secure: false };
+
+export default function useResource(url, defaultData = {}, _options?: Options) {
+  const options: Options = { ...defaultOptions, ..._options };
+  const api = options.secure ? serverApi.secure : serverApi.open;
   const [data, setData] = useState(defaultData);
   const [error, setError] = useState(null);
   const [errors, setErrors] = useState({});
@@ -19,10 +26,10 @@ export default function useResource(url, defaultData = {}) {
         setData(response.data);
       } catch (e) {
         console.error(e);
-        let message = e.response ? e.response.data.error : e.message;
-        let errors = e.response && e.response.data && e.response.data.errors;
+        const message = e.response ? e.response.data.error : e.message;
+        const errs = e.response && e.response.data && e.response.data.errors;
         setError(message);
-        setErrors(errors);
+        setErrors(errs);
       }
       setIsLoading(false);
     })();

@@ -1,5 +1,5 @@
-import server from "./server";
-import "./db";
+import server from './server';
+import './db';
 
 const PORT = process.env.PORT || 3000;
 

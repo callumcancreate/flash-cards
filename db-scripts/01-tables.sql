@@ -1,3 +1,18 @@
+CREATE TABLE public.users (
+  "user_id" serial PRIMARY KEY,
+  "email" text UNIQUE NOT NULL,
+  "password" text NOT NULL,
+  "first_name" text,
+  "last_name" text,
+  "is_verified" boolean DEFAULT FALSE,
+  "is_deleted" boolean DEFAULT FALSE
+);
+
+CREATE TABLE public.refresh_tokens (
+  "token" text PRIMARY KEY NOT NULL,
+  "user_id" int REFERENCES users ON DELETE CASCADE
+);
+
 CREATE TABLE public.tags (
   "tag_id" serial PRIMARY KEY,
   "tag" text UNIQUE NOT NULL

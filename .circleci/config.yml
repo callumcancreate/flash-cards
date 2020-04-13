@@ -8,6 +8,7 @@ jobs:
           PGUSER: postgres
           TEST_DATABASE: test
           NODE_ENV: test
+          JWT_SECRET: secret
       - image: circleci/postgres:9.6.5-alpine-ram
         environment:
           POSTGRES_USER: postgres
@@ -15,6 +16,7 @@ jobs:
     steps:
       - checkout
       - run: npm install
+      - run: npm run lint
       - run: npm run ci:test
   deploy-prod:
     machine:

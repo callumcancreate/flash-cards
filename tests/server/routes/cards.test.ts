@@ -1,7 +1,7 @@
-import server from "../../../src/server/server";
-import supertest from "supertest";
-import * as db from "../../db";
-import { cards, tags, categories } from "../../mock-data";
+import server from '../../../src/server/server';
+import supertest from 'supertest';
+import * as db from '../../db';
+import { cards, tags, tokens } from '../../mock-data';
 
 const request = supertest(server);
 let client;
@@ -16,8 +16,8 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await db.initTables(client);
-  await db.seedData(client);
-  // seed data
+  await db.seedTags(client);
+  await db.seedCards(client);
 });
 
 afterAll(async () => await client.release());
@@ -26,27 +26,29 @@ afterAll(async () => await client.release());
  *  TESTS
  ***********************************/
 
-describe("POST /cards", () => {
-  it("Creates a new card", async () => {
+describe('POST /cards', () => {
+  it('Creates a new card', async () => {
     const newCardId = Object.keys(cards).length + 1;
     const newTagId = Object.keys(tags).length + 1;
-    const newTag = { tag: "new tag" };
+    const newTag = { tag: 'new tag' };
     const newCard = {
-      front: "new front",
-      back: "new back",
-      hint: "new hint",
-      tags: [tags[1], newTag],
+      front: 'new front',
+      back: 'new back',
+      hint: 'new hint',
+      tags: [tags[1], newTag]
     };
 
     const response = await request
-      .post(`/api/v1/cards`)
+      .post('/api/v1/cards')
       .send(newCard)
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .expect(201);
 
     expect(response.body.card).toMatchObject({ ...newCard, cardId: newCardId });
     expect(response.body.card.tags[1]).toMatchObject({
       ...newTag,
-      tagId: newTagId,
+      tagId: newTagId
     });
 
     const { rows, rowCount } = await client.query(
@@ -68,26 +70,42 @@ describe("POST /cards", () => {
   });
 });
 
-describe("GET /cards/:id", () => {
-  it("Gets a card by id", async () => {
-    const r1 = await request.get(`/api/v1/cards/1`).send().expect(200);
+describe('GET /cards/:id', () => {
+  it('Gets a card by id', async () => {
+    const r1 = await request
+      .get('/api/v1/cards/1')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
+      .send()
+      .expect(200);
 
     expect(r1.body.card).toMatchObject(cards[1]);
 
     // Gets a card with no tags
-    const r2 = await request.get(`/api/v1/cards/7`).send().expect(200);
+    const r2 = await request
+      .get('/api/v1/cards/7')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
+      .send()
+      .expect(200);
 
     expect(r2.body.card).toMatchObject(cards[7]);
   });
 });
 
-describe("GET /cards", () => {
-  it("Gets all cards", async () => {
-    const r1 = await request.get(`/api/v1/cards`).query({}).send().expect(200);
+describe('GET /cards', () => {
+  it('Gets all cards', async () => {
+    const r1 = await request
+      .get('/api/v1/cards')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
+      .query({})
+      .send()
+      .expect(200);
     expect(r1.body.cards).toMatchObject(Object.values(cards));
   });
 
-  it("Gets cards from tags", async () => {
+  it('Gets cards from tags', async () => {
     const includedTags = [tags[1], tags[2]];
     const excludedTags = [tags[3]];
     const expectedCards = Object.values(cards).filter(
@@ -98,46 +116,56 @@ describe("GET /cards", () => {
     );
     // expect(expectedCards).toBe(1);
     const r1 = await request
-      .get(`/api/v1/cards`)
+      .get('/api/v1/cards')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .query({
         tagsAll: includedTags.map(({ tag }) => tag), // get cards with tag 1 and 2
-        tagsNone: excludedTags.map(({ tag }) => tag),
+        tagsNone: excludedTags.map(({ tag }) => tag)
       })
       .send()
       .expect(200);
 
     expect(r1.body.cards).toMatchObject(Object.values(expectedCards));
   });
-  it("Filters cards by values", async () => {
+  it('Filters cards by values', async () => {
     const r1 = await request
-      .get(`/api/v1/cards`)
-      .query({ front: "samefront" })
+      .get('/api/v1/cards')
+      .query({ front: 'samefront' })
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
 
     expect(r1.body.cards).toMatchObject([cards[6], cards[7]]);
 
     const r2 = await request
-      .get(`/api/v1/cards`)
-      .query({ back: "back1" })
+      .get('/api/v1/cards')
+      .query({ back: 'back1' })
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
 
     expect(r2.body.cards).toMatchObject([cards[1]]);
 
     const r3 = await request
-      .get(`/api/v1/cards`)
+      .get('/api/v1/cards')
       .query({ cardId: 1 })
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
 
     expect(r3.body.cards).toMatchObject([cards[1]]);
   });
 
-  it("Limit and skip cards", async () => {
+  it('Limit and skip cards', async () => {
     const r1 = await request
-      .get(`/api/v1/cards`)
+      .get('/api/v1/cards')
       .query({ limit: 1, offset: 1 })
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send()
       .expect(200);
 
@@ -145,27 +173,29 @@ describe("GET /cards", () => {
   });
 });
 
-describe("PATCH /cards/:id", () => {
-  it("Updates a card by id", async () => {
-    const newTag = { tag: "new tag" };
+describe('PATCH /cards/:id', () => {
+  it('Updates a card by id', async () => {
+    const newTag = { tag: 'new tag' };
     const newTagId = Object.keys(tags).length + 1;
     const updatedCard = {
       cardId: 3,
-      front: "new front",
-      back: "new back",
-      hint: "new hint",
-      tags: [tags[1], tags[3], newTag], // dropped tag 2, added tag 3 and new tag
+      front: 'new front',
+      back: 'new back',
+      hint: 'new hint',
+      tags: [tags[1], tags[3], newTag] // dropped tag 2, added tag 3 and new tag
     };
 
     const response = await request
-      .patch(`/api/v1/cards/3`)
+      .patch('/api/v1/cards/3')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
       .send(updatedCard)
       .expect(200);
 
     expect(response.body.card).toMatchObject(updatedCard);
     expect(response.body.card.tags[2]).toMatchObject({
       ...newTag,
-      tagId: newTagId,
+      tagId: newTagId
     });
 
     const cardQuery = await client.query(
@@ -188,14 +218,19 @@ describe("PATCH /cards/:id", () => {
   });
 });
 
-describe("DELETE /cards/:id", () => {
-  it("Deletes a card by id", async () => {
-    await request.delete(`/api/v1/cards/1`).send().expect(200);
+describe('DELETE /cards/:id', () => {
+  it('Deletes a card by id', async () => {
+    await request
+      .delete('/api/v1/cards/1')
+      .set('Cookie', `jwt=${tokens[1]}`)
+      .set('Authorization', 'csrf')
+      .send()
+      .expect(200);
 
-    const q1 = await client.query("select * from cards where card_id = 1");
+    const q1 = await client.query('select * from cards where card_id = 1');
     expect(q1.rowCount).toBe(0);
 
-    const q2 = await client.query("select * from card_tags where card_id = 1");
+    const q2 = await client.query('select * from card_tags where card_id = 1');
     expect(q2.rowCount).toBe(0);
   });
 });
