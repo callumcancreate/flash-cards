@@ -20,12 +20,7 @@ const refreshCookieOptions = {
 };
 
 const getTokens = async (userId, email) => {
-  const [bearer, csrfBearer] = await User.getToken(
-    userId,
-    email,
-    60 * 15,
-    'BEARER'
-  );
+  const [bearer, csrfBearer] = await User.getToken(userId, email, 5, 'BEARER');
   const [refresh, csrfRefresh] = await User.getToken(
     userId,
     email,
@@ -82,6 +77,9 @@ export const authRefresh = asyncCatchWrapper(async (req, res) => {
     token,
     process.env.JWT_SECRET
   );
+
+  console.log('tokenCSRF', tokenCSRF);
+  console.log('auth header', req.headers.authorization);
   if (tokenCSRF !== req.headers.authorization || type !== 'REFRESH')
     throw new NamedError('JsonWebTokenError', '');
 

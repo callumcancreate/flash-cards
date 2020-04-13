@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import Router from './Router';
 import { AuthProvider } from './Auth';
 import './App.scss';
-
 // import 'remove-focus-outline';
 // import "./App-dev.scss";
 

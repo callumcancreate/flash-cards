@@ -13,7 +13,7 @@ interface Props {
 }
 
 const LoginForm: React.FC<Props> = ({
-  initialValues = { email: '', password: '' },
+  initialValues = { email: '', password: '' }
 }) => {
   const { user, login } = useContext(AuthContext);
   if (user) return <Redirect to="/" />;
@@ -25,7 +25,7 @@ const LoginForm: React.FC<Props> = ({
     } catch (e) {
       console.error(e);
       actions.setErrors({
-        password: 'Unable to login. Please check your email or password.',
+        password: 'Unable to login. Please check your email or password.'
       });
       actions.setSubmitting(false);
     }

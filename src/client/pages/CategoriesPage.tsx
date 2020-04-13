@@ -7,7 +7,11 @@ import Loader from '../components/Loader';
 import './HomePage.scss';
 
 const HomePage = () => {
-  const [data, error, isLoading] = useResource('/categories', {});
+  const [data, error, isLoading] = useResource(
+    '/categories',
+    {},
+    { secure: true }
+  );
   const categories = data.categories || [];
   return (
     <Layout>
