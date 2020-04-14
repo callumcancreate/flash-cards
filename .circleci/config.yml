@@ -18,26 +18,18 @@ jobs:
       - run: npm install
       - run: npm run lint
       - run: npm run ci:test
-  build-and-deploy:
-    docker:
-      - image: circleci/node:dubnium
+  deploy-prod:
+    machine:
+      enabled: true
     steps:
-      - checkout
-      - add_ssh_keys
-      - run: npm install
-      - run: npm run build
-      - run: rm -rf node_modules
-      - run: npm install --production
-      - run: scp -o StrictHostKeyChecking=no -r node_modules flashcards@callumcancreate.com:~/flash_cards
-      - run: scp -o StrictHostKeyChecking=no -r dist flashcards@callumcancreate.com:~/flash_cards/dist
-      - run: ssh -o StrictHostKeyChecking=no flashcards@callumcancreate.com "sudo systemctl restart flashcards"
+      - run: ssh flashcards@callumcancreate.com "./deploy.sh"
 workflows:
   build-and-test:
     jobs:
       - test
-      # - build-and-deploy:
-      #     filters:
-      #       branches:
-      #         only: circle-deploy
-      #     requires:
-      #       - test
+      - deploy-prod:
+          filters:
+            branches:
+              only: master
+          requires:
+            - build-and-test
