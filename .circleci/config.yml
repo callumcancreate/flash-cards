@@ -1,6 +1,6 @@
 version: 2.1
 jobs:
-  build-and-test:
+  test:
     docker:
       - image: circleci/node:dubnium
         environment:
@@ -26,10 +26,10 @@ jobs:
 workflows:
   build-and-test:
     jobs:
-      - build-and-test
+      - test
       - deploy-prod:
           filters:
             branches:
               only: master
           requires:
-            - build-and-test
+            - test

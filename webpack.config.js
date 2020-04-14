@@ -4,6 +4,9 @@ const NodeExternals = require('webpack-node-externals');
 const Dotenv = require('dotenv-webpack');
 const Nodemon = require('nodemon-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopmressionPlugin = require('compression-webpack-plugin');
+
+const src = path.resolve(__dirname, 'src');
 
 const makeConfig = (name) => (env) => {
   const isServer = name === 'server';
@@ -11,18 +14,14 @@ const makeConfig = (name) => (env) => {
     ? [
         new Nodemon({
           script: './dist/server.js',
-          watch: path.resolve('./dist')
+          watch: path.resolve(__dirname, './dist')
         })
       ]
     : [
         new HtmlWebpackPlugin({
           template: __dirname + '/src/server/public/index.html',
           favicon: __dirname + '/src/server/public/favicon.ico',
-          filename: 'template.html',
-          minify: {
-            removeTagWhitespace: true,
-            collapseWhitespace: true
-          }
+          filename: 'template.html'
         })
       ];
 
@@ -31,6 +30,74 @@ const makeConfig = (name) => (env) => {
     plugins.push(new CleanWebpackPlugin());
   }
 
+  if (env.production && !isServer) {
+    plugins = [
+      ...plugins,
+      new CopmressionPlugin({
+        filename: '[path].br[query]',
+        algorithm: 'brotliCompress',
+        test: /\.(js|css|html|svg)$/,
+        compressionOptions: { level: 11 },
+        threshold: 10240,
+        minRatio: 0.8
+      }),
+      new CopmressionPlugin({
+        filename: '[path].gz[query]',
+        algorithm: 'gzip',
+        test: /\.js$|\.css$|\.html$/,
+        threshold: 10240,
+        minRatio: 0.8
+      })
+    ];
+  }
+
+  const rules = [
+    {
+      test: /\.tsx?$/,
+      include: src,
+      use: ['ts-loader']
+    },
+    {
+      test: /\.jsx?$/,
+      include: src,
+      use: ['babel-loader']
+    },
+    {
+      test: /\.s[ac]ss$/i,
+      use: isServer
+        ? 'ignore-loader'
+        : ['style-loader', 'css-loader', 'sass-loader'],
+      include: src
+    },
+    {
+      test: /\.css$/i,
+      use: isServer ? 'ignore-loader' : ['style-loader', 'css-loader'],
+      include: src
+    }
+  ];
+
+  if (!env.production) {
+    rules.push({
+      enforce: 'pre',
+      test: /\.js$/,
+      use: 'source-map-loader'
+    });
+    rules[0].use = [...rules[0].use, 'eslint-loader'];
+  }
+
+  const optimization = isServer
+    ? undefined
+    : {
+        splitChunks: {
+          cacheGroups: {
+            vendors: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendor',
+              chunks: 'all'
+            }
+          }
+        }
+      };
   return {
     mode: env.production ? 'production' : 'development',
     entry: {
@@ -42,41 +109,21 @@ const makeConfig = (name) => (env) => {
       publicPath: isServer ? '/public' : '/'
     },
     module: {
-      rules: [
-        {
-          test: /\.tsx?$/,
-          exclude: /node_modules/,
-          use: ['ts-loader', 'eslint-loader']
-        },
-        {
-          test: /\.jsx?$/,
-          exclude: /node_modules/,
-          use: ['babel-loader', 'eslint-loader']
-        },
-        {
-          test: /\.s[ac]ss$/i,
-          use: isServer
-            ? 'ignore-loader'
-            : ['style-loader', 'css-loader', 'sass-loader'],
-          exclude: /node_modules/
-        },
-        {
-          test: /\.css$/i,
-          use: isServer ? 'ignore-loader' : ['style-loader', 'css-loader'],
-          exclude: /node_modules/
-        },
-        {
-          enforce: 'pre',
-          test: /\.js$/,
-          use: 'source-map-loader'
-        }
-      ]
+      rules
     },
-    devtool: env.production ? 'source-maps' : 'eval',
+    devtool: env.production ? undefined : 'source-maps',
     plugins,
     resolve: {
       extensions: ['.tsx', '.ts', '.js']
     },
+    cache: {
+      type: 'filesystem',
+      cacheDirectory: path.resolve(__dirname, '.cache'),
+      buildDependencies: {
+        config: [__filename]
+      }
+    },
+    optimization,
     externals: isServer ? [new NodeExternals()] : [],
     target: isServer ? 'node' : 'web',
     node: {
