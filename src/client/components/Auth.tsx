@@ -15,16 +15,19 @@ export const AuthProvider = ({ children }) => {
   }, [isLoading]);
 
   useEffect(() => {
-    (async () => {
-      const csrf = JSON.parse(localStorage.getItem('csrf'));
-      if (csrf) {
-        const {
-          data: { user: profile }
-        } = await api.secure.get('/users/me');
+    const csrf = JSON.parse(localStorage.getItem('csrf'));
+    if (!csrf) return setLoading(false);
+    api.secure
+      .get('/users/me')
+      .then((res) => {
+        const profile = res.data.user;
         setUser(profile);
-      }
-      setLoading(false);
-    })();
+        setLoading(false);
+      })
+      .catch((e) => {
+        console.log(e);
+        setLoading(false);
+      });
   }, []);
 
   const login = ({ user: data, csrf }) => {
