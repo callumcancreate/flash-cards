@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import setCookie from 'set-cookie-parser';
-import server from '../../../src/server/server';
 import supertest from 'supertest';
+import server from '../../../src/server/server';
 import * as db from '../../db';
 import { users, tokens } from '../../mock-data';
 import User from '../../../src/server/models/User';
