@@ -6,7 +6,7 @@ const LoginPage: React.FC = () => {
   return (
     <Layout noHeader>
       <div
-        className="d-flex justify-content-center align-items-center py-5"
+        className="container-fluid d-flex justify-content-center align-items-center py-5"
         style={{ height: '100%' }}
       >
         <LoginForm />

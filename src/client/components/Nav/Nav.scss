@@ -7,7 +7,7 @@
 
 nav {
   .nav-container {
-    $transition: 200ms;
+    $transition: 150ms;
     &.open {
       opacity: 1;
       visibility: visible;
@@ -34,7 +34,7 @@ nav {
       padding-top: 10vh;
       background-color: white;
       width: 0%;
-      transition: width $transition ease-in-out;
+      transition: width $transition - 50ms ease-in-out;
 
       button {
         padding: 0.5rem;
