@@ -16,3 +16,10 @@
 @mixin boxShadowRaised {
   box-shadow: 1.5px 1.5px 9px 7px rgba(150, 150, 150, 0.2);
 }
+
+@mixin notButton {
+  border: 0;
+  font-size: 100%;
+  font-family: inherit;
+  padding: 0;
+}

@@ -39,14 +39,17 @@ const makeConfig = (name) => (env) => {
         test: /\.(js|css|html|svg)$/,
         compressionOptions: { level: 11 },
         threshold: 10240,
-        minRatio: 0.8
+        minRatio: 0.8,
+        cache: true
       }),
       new CopmressionPlugin({
         filename: '[path].gz[query]',
         algorithm: 'gzip',
         test: /\.js$|\.css$|\.html$/,
         threshold: 10240,
-        minRatio: 0.8
+        minRatio: 0.8,
+        cache: true,
+        deleteOriginalAssets: true
       })
     ];
   }
@@ -63,15 +66,10 @@ const makeConfig = (name) => (env) => {
       use: ['babel-loader']
     },
     {
-      test: /\.s[ac]ss$/i,
+      test: /\.(s[ac]|c)ss$/i,
       use: isServer
         ? 'ignore-loader'
         : ['style-loader', 'css-loader', 'sass-loader'],
-      include: src
-    },
-    {
-      test: /\.css$/i,
-      use: isServer ? 'ignore-loader' : ['style-loader', 'css-loader'],
       include: src
     }
   ];
@@ -85,19 +83,6 @@ const makeConfig = (name) => (env) => {
     rules[0].use = [...rules[0].use, 'eslint-loader'];
   }
 
-  const optimization = isServer
-    ? undefined
-    : {
-        splitChunks: {
-          cacheGroups: {
-            vendors: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendor',
-              chunks: 'all'
-            }
-          }
-        }
-      };
   return {
     mode: env.production ? 'production' : 'development',
     entry: {
@@ -114,7 +99,9 @@ const makeConfig = (name) => (env) => {
     devtool: env.production ? undefined : 'source-maps',
     plugins,
     resolve: {
-      extensions: ['.tsx', '.ts', '.js']
+      extensions: ['.tsx', '.ts', '.js'],
+      symlinks: false,
+      cacheWithContext: false
     },
     cache: {
       type: 'filesystem',
@@ -123,7 +110,17 @@ const makeConfig = (name) => (env) => {
         config: [__filename]
       }
     },
-    optimization,
+    optimization: {
+      splitChunks: {
+        cacheGroups: {
+          vendors: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendor',
+            chunks: 'all'
+          }
+        }
+      }
+    },
     externals: isServer ? [new NodeExternals()] : [],
     target: isServer ? 'node' : 'web',
     node: {
