@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Category from '../../../types/Category';
 import './CategoryListItem.scss';
 
@@ -28,7 +28,7 @@ const CategoryListItem: React.FC<Props> = ({
         className="label"
         onClick={onClick}
         role="button"
-        tabIndex={0}
+        tabIndex={isParentOpen ? 0 : undefined}
         style={{ backgroundColor: `rgba(100, 100, 100, ${0 + node / 10})` }}
         onKeyDown={onLabelPress}
       >
