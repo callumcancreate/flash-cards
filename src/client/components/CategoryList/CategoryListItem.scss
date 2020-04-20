@@ -1,8 +1,8 @@
 @import '../../constants/mixins';
+@import '../../constants/colors';
 
 .category-list-item {
-  @include notButton();
-  // @include flex();
+  // @include notButton();
   display: block;
   width: 100%;
   background: white;
@@ -14,22 +14,31 @@
   cursor: default;
 
   .label {
-    padding: 1rem;
+    $labelpadding: 1rem;
+    padding: $labelpadding;
+    @include flex(space-between);
+
+    &:hover {
+      cursor: pointer;
+      background-color: rgba($secondary, 0.3) !important;
+    }
+
+    &:focus {
+      @include focussed();
+    }
   }
 
-  .label:hover {
-    cursor: pointer;
-    background-color: rgba(100, 100, 100, 0.5);
-  }
   overflow: hidden;
   .children {
     max-height: 0;
+    visibility: hidden;
     transition: max-height 200ms cubic-bezier(0, 1, 0, 1);
   }
 
   .children.open {
     max-height: 2000px;
     transition: max-height 200ms ease-in-out;
+    visibility: visible;
   }
 
   & .category-list-item {
