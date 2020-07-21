@@ -54,11 +54,11 @@ export const seedCards = async (client) =>
         [card.front, card.back, card.hint]
       );
       await Promise.all(
-        card.tags.map(
+        (card.tags as any[]).map(
           async (tag) =>
             await client.query('INSERT INTO card_tags VALUES ($1, $2)', [
               card.cardId,
-              tag.tagId
+              tag.tagId,
             ])
         )
       );
@@ -77,7 +77,7 @@ export const seedCategories = async (client) =>
           async (tag) =>
             await client.query('INSERT INTO category_tags VALUES ($1, $2)', [
               cat.categoryId,
-              tag.tagId
+              tag.tagId,
             ])
         )
       );
