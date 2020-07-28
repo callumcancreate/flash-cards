@@ -23,7 +23,7 @@ export const CardFindFilter = Joi.object({
   cardId,
   front,
   back,
-  hint,
+  hint: hint.optional(),
 });
 
 export const CardFindOptions = Joi.object({
