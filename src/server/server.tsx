@@ -18,6 +18,18 @@ server.use('/api/v1', apiRouter);
 server.use(express.static('dist/public'));
 server.use(errorHandler);
 
+server.post('/rapidid', (req, res) => {
+  console.log(req);
+  console.log('Body');
+  console.log(req.body);
+  console.log('headers');
+  console.log(req.headers);
+  console.log('query');
+  console.log(req.query);
+  console.log('Params');
+  console.log(req.params);
+  res.send();
+});
 server.get('*', renderApp);
 
 export default server;
